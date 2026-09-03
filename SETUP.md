@@ -4,19 +4,26 @@ Follow these steps to get your app running locally.
 
 ## Prerequisites
 
-- Node.js (version specified in `.nvmrc`)
+- Node.js 24.14.1, managed with nvm
 - Yarn 4
 - Docker (to run the local Twenty server)
 
 ## Steps
 
-1. Install dependencies:
+1. Select the project's Node version and enable Corepack:
+
+   ```bash
+   nvm use
+   corepack enable
+   ```
+
+2. Install dependencies:
 
    ```bash
    yarn install
    ```
 
-2. Start the local Twenty server:
+3. Start the local Twenty server:
 
    ```bash
    yarn twenty docker:start
@@ -24,13 +31,13 @@ Follow these steps to get your app running locally.
 
    Check the server status at any time with `yarn twenty docker:status`.
 
-3. Start the development server and sync your app:
+4. Start the development server and sync your app:
 
    ```bash
    yarn twenty dev
    ```
 
-4. Open [http://localhost:2020](http://localhost:2020) and log in with the default development credentials: `tim@apple.dev` / `tim@apple.dev`.
+5. Open [http://localhost:2020](http://localhost:2020) and log in with the default development credentials: `tim@apple.dev` / `tim@apple.dev`.
 
 ## Verifying your setup
 
@@ -38,6 +45,23 @@ Follow these steps to get your app running locally.
 - `yarn typecheck` - Type-check the project
 - `yarn test:unit` - Run unit tests
 - `yarn test` - Run integration tests
+
+## Deploy to production
+
+The CD workflow deploys the app to the production Twenty server on each push to `main`.
+GitHub Actions needs a `TWENTY_DEPLOY_API_KEY` repository secret with permission to deploy and install apps. Keep the key out of the repository.
+
+Before the first CI deployment, create the app registration from this checkout:
+
+```bash
+yarn twenty apply --remote production
+```
+
+Review future metadata changes before merging them:
+
+```bash
+yarn twenty plan --remote production
+```
 
 ## Troubleshooting
 

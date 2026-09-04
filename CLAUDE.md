@@ -68,3 +68,40 @@ It's highly recommended to create new app entities using `yarn twenty dev:add`. 
 | Connection provider  | `yarn twenty dev:add connectionProvider` | `src/connection-providers/<name>.ts`  |
 
 This helps automatically generate required IDs etc.
+
+## Testing
+
+Do not write Playwright, Cypress, or any other end-to-end or front-end test. Do not drive the Twenty web UI, and do not take screenshots of it. The maintainer does that testing personally.
+
+Never start a dev server. Do not run `yarn twenty dev`, `yarn twenty docker:start`, or any other long-running server process. The maintainer starts these personally. If a task seems to need a running server, say so and stop.
+
+Verify work headlessly instead:
+
+- `yarn typecheck` and `yarn lint`
+- `yarn test:unit` for unit tests, `yarn test` for integration tests
+- `yarn twenty plan --remote local` to review a metadata diff, then `yarn twenty apply --remote local`
+- The metadata API at `http://localhost:2020/metadata` and the record API at `http://localhost:2020/graphql`
+- `yarn twenty dev:function:logs --remote local` to read logic function output
+
+## Remotes
+
+The `twenty` CLI defaults to the `production` remote, which is the live CRM. Pass `--remote local` on every server-touching command during development. Never run `yarn twenty apply` against production without being asked, and never pass `--force`.
+
+## Model spec
+
+`spec/deals-and-projects.md` documents the Deal and Project model, the junction pattern that gives them multiple contacts, and the SDK constraints and bugs found while building it. Read it before changing objects, fields, or views.
+
+## Versioning
+
+Bump the `version` in `package.json` by 0.0.1 whenever you make a material change. Do it in the same commit as the change, not as a separate follow-up.
+
+A change is material when it alters what gets deployed:
+
+- Any object, field, view, view field, or navigation menu item
+- Any logic function, skill, agent, role, or connection provider
+- Any front component or page layout
+- Any dependency change that reaches the built package
+
+A change is not material when it only touches documentation, comments, or tests. Those need no bump.
+
+Twenty rejects a package version that is already deployed. Skipping the bump makes CD fail with `version must be higher than the currently deployed version`, and the deploy is lost even though CI passes.

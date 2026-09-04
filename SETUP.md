@@ -48,14 +48,16 @@ Follow these steps to get your app running locally.
 
 ## Deploy to production
 
-The CD workflow deploys the app to the production Twenty server on each push to `main`.
-GitHub Actions needs a `TWENTY_DEPLOY_API_KEY` repository secret with permission to deploy and install apps. Keep the key out of the repository.
+The CD workflow deploys a package to the production Twenty server on each push to `main`. The installed app has auto-upgrade enabled, so Twenty applies each newer package version in the background.
+GitHub Actions needs a `TWENTY_DEPLOY_API_KEY` repository secret with permission to deploy apps. Keep the key out of the repository.
 
 Before the first CI deployment, create the app registration from this checkout:
 
 ```bash
 yarn twenty apply --remote production
 ```
+
+Before each package deployment, increase the version in `package.json`. Twenty rejects a package version that is already deployed.
 
 Review future metadata changes before merging them:
 

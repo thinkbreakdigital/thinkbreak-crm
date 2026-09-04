@@ -18,7 +18,7 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  deploy-and-install:
+  deploy:
     if: >-
       github.event_name == 'push' ||
       (github.event_name == 'pull_request' && github.event.label.name == 'deploy')
@@ -31,12 +31,6 @@ jobs:
 
       - name: Deploy
         uses: twentyhq/twenty/.github/actions/deploy-twenty-app@main
-        with:
-          api-url: ${{ env.TWENTY_DEPLOY_URL }}
-          api-key: ${{ secrets.TWENTY_DEPLOY_API_KEY }}
-
-      - name: Install
-        uses: twentyhq/twenty/.github/actions/install-twenty-app@main
         with:
           api-url: ${{ env.TWENTY_DEPLOY_URL }}
           api-key: ${{ secrets.TWENTY_DEPLOY_API_KEY }}

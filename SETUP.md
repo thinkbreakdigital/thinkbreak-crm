@@ -59,11 +59,15 @@ yarn twenty apply --remote production
 
 Before each package deployment, increase the version in `package.json`. Twenty rejects a package version that is already deployed.
 
-Review future metadata changes before merging them:
+For every intentional production metadata change, run this gate from the app checkout before the package release:
 
 ```bash
 yarn twenty plan --remote production
+
+yarn twenty apply --remote production
 ```
+
+Review the plan before running `apply`. The apply command changes production metadata; do not run it when the plan includes unintended changes or deletions.
 
 ## Troubleshooting
 

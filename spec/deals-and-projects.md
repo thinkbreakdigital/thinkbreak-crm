@@ -138,7 +138,8 @@ one.
 Name your view something other than `All <Plural>`. The server provisions an index view
 under that name for every object, and reusing it gives you two identically named views.
 
-Give every view a menu item. Without one, the view does not appear in the sidebar.
+Do not add a navigation menu item for the view. See Navigation menu items in
+CLAUDE.md: the maintainer adds sidebar entries by hand.
 
 ## Verify
 

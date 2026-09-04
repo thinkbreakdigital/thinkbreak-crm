@@ -43,8 +43,12 @@
 
 ## Common Pitfalls
 
-- Creating a view without a navigationMenuItem associated. This will make the view available on the left sidebar.
+- A view needs a navigationMenuItem to show up on the left sidebar. See Navigation menu items below before adding one.
 - Creating a front-end component that has a scroll instead of being responsive to its fixed widget height and width, unless it is specifically meant to be used in a canvas tab.
+
+## Navigation menu items
+
+Do not scaffold a navigation menu item for a new view. Create the object and the view, then stop. The maintainer adds the sidebar entry by hand in the Twenty UI, where they also set its position and icon.
 
 ## Best practice
 

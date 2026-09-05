@@ -77,19 +77,23 @@ This helps automatically generate required IDs etc.
 
 Do not write Playwright, Cypress, or any other end-to-end or front-end test. Do not drive the Twenty web UI, and do not take screenshots of it. The maintainer does that testing personally.
 
-Never start a dev server. Do not run `yarn twenty dev`, `yarn twenty docker:start`, or any other long-running server process. The maintainer starts these personally. If a task seems to need a running server, say so and stop.
+There is no local development environment. Do not create one. Never start a dev server, and do not run `yarn twenty dev`, `yarn twenty docker:start`, or any other long-running server process.
 
 Verify work headlessly instead:
 
-- `yarn typecheck` and `yarn lint`
-- `yarn test:unit` for unit tests, `yarn test` for integration tests
-- `yarn twenty plan --remote local` to review a metadata diff, then `yarn twenty apply --remote local`
-- The metadata API at `http://localhost:2020/metadata` and the record API at `http://localhost:2020/graphql`
-- `yarn twenty dev:function:logs --remote local` to read logic function output
+- `yarn typecheck` and `yarn lint`, which cover `src/` and `scripts/`
+- `yarn test:unit` for unit tests
+- CI is the only workspace target. `.github/workflows/ci.yml` spawns a throwaway Twenty instance, `yarn test` installs the app into it through `appDevOnce`, and that step also generates the typed client. Read metadata diffs and destroy counts from the CI log.
+
+A typecheck on a fresh clone passes vacuously for anything importing `CoreApiClient`, because the SDK ships fallback declarations typed as `any`. Only CI checks that code against a real schema.
 
 ## Remotes
 
-The `twenty` CLI defaults to the `production` remote, which is the live CRM. Pass `--remote local` on every server-touching command during development. Never run `yarn twenty apply` against production without being asked, and never pass `--force`.
+No remotes are configured for this project, and none should be. The `twenty` CLI would otherwise take its target from `defaultRemote` in `~/.twenty/config.json`, which depends on the machine rather than the repository. A remote's name is also not proof of its target: this project has had a remote named `production` pointing at localhost while the live CRM sat behind a differently named one.
+
+So never rely on a remote name. If a command must reach a workspace, pass the URL explicitly and confirm it first. Never run `yarn twenty apply` against a live workspace without being asked, and never pass `--force`.
+
+Deployment targets belong in configuration, not in tracked files. CD reads the workspace URL from the `TWENTY_DEPLOY_URL` repository variable and the key from the `TWENTY_DEPLOY_API_KEY` secret. Do not hardcode a workspace hostname anywhere in this repository.
 
 ## Model spec
 

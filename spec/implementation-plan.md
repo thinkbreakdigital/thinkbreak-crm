@@ -123,7 +123,7 @@ Where this plan says "the CI workspace" it means that instance.
   action already exports.
 
 A production apply still happens only through CD in `.github/workflows/cd.yml`,
-which reads its target from the `TWENTY_DEPLOY_URL` repository variable and its
+which reads its target from the `SERVER_URL` repository variable and its
 key from the `TWENTY_DEPLOY_API_KEY` secret.
 
 ### Verified SDK capabilities

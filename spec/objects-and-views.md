@@ -48,7 +48,7 @@ An app package cannot do that for you.
 | `stage` | SELECT | Pipeline, Outreach, Appt Set, Appt Met, Quote, Won, Lost |
 | `dealType` | SELECT | New Business, Expansion, Renewal |
 | `billingType` | SELECT | Recurring, Singular |
-| `value` | CURRENCY | |
+| `value` | CURRENCY | Labelled Est. Annual Value; see Value and dashboard reporting below |
 | `company` | RELATION | MANY_TO_ONE to `company` |
 | `primaryContact` | RELATION | MANY_TO_ONE to `person` |
 | `contacts` | RELATION | ONE_TO_MANY to `dealContact` |
@@ -68,7 +68,7 @@ Every object also gets `noteTargets`, `taskTargets`, `attachments`, and
 | `company` | RELATION | MANY_TO_ONE to `company`, labelled Client |
 | `primaryContact` | RELATION | MANY_TO_ONE to `person` |
 | `contacts` | RELATION | ONE_TO_MANY to `projectContact` |
-| `value` | CURRENCY | |
+| `value` | CURRENCY | See Value and dashboard reporting below |
 | `startDate` | DATE | |
 | `endDate` | DATE | Optional, so set `isNullable` |
 | `billingType` | SELECT | Recurring, Singular |
@@ -76,6 +76,32 @@ Every object also gets `noteTargets`, `taskTargets`, `attachments`, and
 
 A company can have many projects. The `company` field is MANY_TO_ONE, and its inverse
 `projects` on Company is ONE_TO_MANY.
+
+## Value and dashboard reporting
+
+Deal and Project each have a `value` CURRENCY field and a `billingType` SELECT field
+(Recurring, Singular), but the two objects' `value` fields hold different units. There
+is no shared formula behind them, because `FieldMetadataType` in twenty-sdk 2.37.0 has
+no formula or rollup option; every `value` field is a plain number someone types in.
+
+- Deal's `value` is labelled Est. Annual Value. It always holds a rough, normalized
+  annual estimate, whatever the deal's `billingType`: for a recurring deal, estimate
+  the annualized recurring revenue; for a singular deal, estimate the one-time amount.
+  A pipeline dashboard can sum this field directly, since every row is already in the
+  same annual unit.
+- Project's `value` keeps the plain Value label, and its unit depends on `billingType`:
+  for a recurring project it is the monthly retainer amount actually billed, and for a
+  singular project it is the total one-time contract amount. A dashboard that sums
+  Project `value` across both billing types must annualize the recurring rows first
+  (`value × 12`); this app has no field or logic function that does that automatically,
+  so it has to happen in the report or dashboard widget that consumes the data.
+
+A deal that is won often becomes two projects rather than one, so that each has the
+`billingType` and `value` unit that matches how it is actually billed: a Singular
+project for one-time setup work, and a Recurring project for the ongoing retainer.
+This also leaves room to spin up further Singular projects later for large items that
+should be billed outside the retainer, without disturbing the retainer project's
+monthly `value`.
 
 ## Give a deal or a project several contacts with a junction object
 

@@ -93,7 +93,7 @@ The `twenty` CLI defaults to the `production` remote, which is the live CRM. Pas
 
 ## Model spec
 
-`spec/deals-and-projects.md` documents the Deal and Project model, the junction pattern that gives them multiple contacts, and the SDK constraints and bugs found while building it. Read it before changing objects, fields, or views.
+`spec/objects-and-views.md` documents the Deal and Project model, the junction pattern that gives them multiple contacts, and the SDK constraints and bugs found while building it. Read it before changing objects, fields, or views.
 
 ## Versioning
 

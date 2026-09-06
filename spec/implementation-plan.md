@@ -39,6 +39,8 @@ that project only after this app is deployed and in daily use.
   value is packaged. Do not leave it as workflow configuration in the UI.
 - Do not add weighted pipeline calculations in this release.
 - Add an explicit status to Project.
+- Store Company industries as records in a custom Industry object. Do not seed
+  Industry records from the app package.
 - Prefer a stock Twenty field, object, subfield, relation, workflow, or view.
 - Add app metadata only when no stock feature carries the value or when a
   dashboard must aggregate the value directly.
@@ -73,6 +75,8 @@ the deployed model.
 
 - Company is a standard Twenty object. The app adds `clientStatus`, `industry`,
   `primaryContact`, `deals`, and `projects`.
+- Industry is a custom object. Company `industry` is a nullable many-to-one
+  relation to it, and Industry `companies` is the inverse relation.
 - Person is a standard Twenty object. The app adds the inverse primary-contact
   and junction relations, plus `internalNotes`.
 - Deal is a custom object. It has `stage`, `dealType`, `billingType`, `value`,
@@ -94,9 +98,8 @@ the deployed model.
 ### Confirmed field findings
 
 - Company has `clientStatus` with Prospect, Client, and Former Client.
-- Company has a nullable `industry` SELECT with the packaged `Add New` option.
-  The maintainer adds Industry values through Twenty's data model. Confirm that a
-  package sync preserves those values before using them in production.
+- Company has a nullable `industry` relation. The package defines no Industry
+  records, so workspace-created industries remain record data across upgrades.
 - Deal does not have lead attribution or a win probability.
 - Deal `value` already stores an estimated annual value.
 - Project `value` stores a monthly amount for Recurring projects and a full
@@ -316,6 +319,27 @@ Create each entity with `yarn twenty dev:add`. Do not handwrite generated IDs.
 Source is tracked. The maintainer approved direct removal of the redundant
 `internalNotes` fields in this development workspace, so Phase 3 has no
 migration tooling, migration state, value export, or rollback set.
+
+### Replace Company Industry select
+
+The app-owned SELECT cannot safely accept workspace-added options because each
+app sync sends the complete packaged option list. Replace it with a custom
+Industry object and a Company relation so each Industry is workspace-owned
+record data.
+
+- [x] Add the Industry object with `name` as its label identifier.
+- [x] Replace Company `industry` with a nullable MANY_TO_ONE relation.
+- [x] Add the inverse Industry `companies` ONE_TO_MANY relation.
+- [x] Use SET_NULL when an Industry is deleted.
+- [x] Do not package or preload any Industry records.
+- [x] Add an integration test that creates an Industry record, syncs the app a
+  second time, and confirms that the record remains.
+- [ ] Export and count existing Company Industry assignments before the first
+  deployment of this replacement.
+- [ ] Review the CI plan and approve the old SELECT field retirement before
+  deployment.
+- [ ] Restore the exported assignments through Industry records and verify the
+  resulting count after deployment.
 
 ### Remove redundant `internalNotes` fields
 

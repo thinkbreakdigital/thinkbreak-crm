@@ -27,10 +27,17 @@ restore, or soft-delete records.
 | Field | Type | Notes |
 | --- | --- | --- |
 | `clientStatus` | SELECT | Prospect, Client, Former Client |
-| `industry` | SELECT | Nullable. The app packages `Add New`; the maintainer manages Industry values in Twenty's data model. |
+| `industry` | RELATION | Nullable many-to-one relation to Industry. Deleting an Industry clears this field instead of deleting the Company. |
 | `primaryContact` | RELATION | Many-to-one to Person |
 | `deals` | RELATION | One-to-many, inverse of Deal's `company` field |
 | `projects` | RELATION | One-to-many, inverse of Project's `company` field |
+
+### Industry (custom object)
+
+`src/objects/industry.ts` defines the object. It contains a `name` field and the
+inverse `companies` relation. The package creates no Industry records. Workspace
+owners create and reuse the records they need, and app upgrades do not declare or
+replace that record data.
 
 ### Person (standard object)
 

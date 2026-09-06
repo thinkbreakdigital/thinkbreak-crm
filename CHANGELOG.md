@@ -2,6 +2,13 @@
 
 All notable changes to this application are documented in this file.
 
+## 0.1.21
+
+- Replace the Company Industry select with a relation to a custom Industry
+  object.
+- Store industries as workspace records so app upgrades do not redefine the
+  available values.
+
 ## 0.1.20
 
 - Display Deal Probability as a percentage.

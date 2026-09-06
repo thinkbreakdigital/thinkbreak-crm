@@ -154,9 +154,13 @@ fields to Company and five to Person:
 `clientStatus` is a SELECT with Prospect, Client, and Former Client. A workflow sets it
 to Client when a deal reaches Won.
 
-`industry` is a nullable SELECT. The app packages only `Add New`; the maintainer adds
-Industry values in Twenty's data model. Confirm that a package sync preserves those
-values before using them in production.
+`industry` is a nullable MANY_TO_ONE relation to the custom Industry object. The
+inverse `companies` field is ONE_TO_MANY. Deleting an Industry sets the Company
+relation to null and does not delete the Company.
+
+Industry values are records, not SELECT metadata. The app defines the object and
+relation but creates no Industry records. Workspace owners create the records they
+need, and later app upgrades do not send a replacement list of values.
 
 ## Add the kanban board
 

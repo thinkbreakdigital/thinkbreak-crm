@@ -38,7 +38,9 @@ Install the tools needed for static checks:
 Run `yarn test` in CI. Its integration setup installs the app into a temporary
 Twenty workspace and generates the workspace-specific client. CI then confirms
 that the generated schema contains Project `annualizedValue` and Deal
-`probability` before it runs the typecheck for the packaged logic functions.
+`probability` before it runs the typecheck for the packaged logic functions. It
+also creates an Industry record, syncs the app again, and confirms that the
+record survives.
 
 ## Production deployment
 
@@ -80,9 +82,37 @@ After CD deploys the app, complete these workspace-only steps in the Twenty UI:
 2. Choose its sidebar position and icon.
 3. Add a sidebar entry for the **Projects list** view on Project.
 4. Choose its sidebar position and icon.
+5. Create the Industry records needed by this workspace. The package does not
+   preload any industries.
 
 These sidebar entries are intentionally not packaged. The maintainer controls
 their placement and icons in the workspace.
+
+Company **Industry** is a relation to those Industry records. Add a sidebar entry
+for Industries only if workspace administrators want a dedicated list for managing
+them. The package intentionally does not choose that sidebar placement.
+
+### Company Industry migration gate
+
+Version 0.1.21 replaces the app-owned Company Industry SELECT field with a
+relation. Applying this upgrade retires the old field and can remove any values
+still stored in it. Before the first 0.1.21 deployment:
+
+1. Export every Company ID, Company name, and current Industry value.
+2. Count the exported Companies with a non-empty Industry and spot-check the
+   export against the workspace.
+3. Keep the export as the restore source.
+4. Review the CI metadata plan and confirm that the old Industry SELECT is the
+   only additional field retirement.
+5. Deploy 0.1.21 only after the export and plan are approved.
+6. Create one Industry record for each distinct exported value, then assign the
+   matching record to each Company.
+7. Compare the restored non-empty count with the export and spot-check the same
+   Companies again.
+
+For a new installation, skip this migration gate and create Industry records
+after installation. Later upgrades preserve them because the app package defines
+the Industry schema but does not define its records.
 
 Do not add a separate sidebar entry for the Operational dashboard. It belongs
 in Twenty's built-in Dashboard module. The package creates its Dashboard record

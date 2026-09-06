@@ -353,8 +353,8 @@ needs no rounding rule.
 
 ### Add Deal fields
 
-- [x] Add `probability` as a nullable NUMBER field that stores the percentage for
-  the Deal's current stage.
+- [x] Add `probability` as a nullable NUMBER field, displayed as a percentage,
+  that stores the Deal's current stage value.
 - [x] Add `leadSource` as a SELECT field.
 - [x] Ship Website Form (`WEBSITE_FORM`), Manual (`MANUAL`), Business Card
   (`BUSINESS_CARD`), and Other (`OTHER`) as the initial Lead Source options.
@@ -370,7 +370,7 @@ needs no rounding rule.
   extensibility promise in Phase 6 rests on this behavior, so prove it before the
   release depends on it.
 
-Keep `probability` as a NUMBER. A packaged logic function updates it when
+Keep `probability` as a NUMBER, displayed as a percentage. A packaged logic function updates it when
 `stage` changes. The field stores the stage probability for filtering and
 display. This release does not calculate or store a weighted Deal value.
 

@@ -50,7 +50,7 @@ An app package cannot do that for you.
 | `dealType` | SELECT | New Business, Expansion, Renewal |
 | `billingType` | SELECT | Recurring, Singular |
 | `value` | CURRENCY | Labelled Est. Annual Value; see Value and dashboard reporting below |
-| `probability` | NUMBER | Derived from `stage`; 10, 20, 30, 50, 75, 100, or 0 |
+| `probability` | NUMBER | Displayed as a percentage. Derived from `stage`; 10, 20, 30, 50, 75, 100, or 0 |
 | `leadSource` | SELECT | Website Form, Manual, Business Card, Other |
 | `intakeSubmissionId` | TEXT | Nullable, unique external idempotency key |
 | `company` | RELATION | MANY_TO_ONE to `company` |

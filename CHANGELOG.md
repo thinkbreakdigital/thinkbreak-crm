@@ -2,6 +2,10 @@
 
 All notable changes to this application are documented in this file.
 
+## 0.1.20
+
+- Display Deal Probability as a percentage.
+
 ## 0.1.19
 
 - Add a nullable Company Industry select field with the `Add New` option.

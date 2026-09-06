@@ -1,0 +1,68 @@
+name: Install published app
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  install:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check install target is configured
+        env:
+          API_URL: ${{ vars.TWENTY_DEPLOY_URL }}
+          API_KEY: ${{ secrets.TWENTY_DEPLOY_API_KEY }}
+        run: |
+          if [ -z "$API_URL" ]; then
+            echo "TWENTY_DEPLOY_URL is not set."
+            exit 1
+          fi
+          if [ -z "$API_KEY" ]; then
+            echo "TWENTY_DEPLOY_API_KEY is not set."
+            exit 1
+          fi
+
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Enable Corepack
+        run: corepack enable
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+          cache: yarn
+
+      - name: Install dependencies
+        run: yarn install --immutable
+
+      - name: Configure install target
+        env:
+          API_URL: ${{ vars.TWENTY_DEPLOY_URL }}
+          API_KEY: ${{ secrets.TWENTY_DEPLOY_API_KEY }}
+        run: |
+          mkdir -p ~/.twenty
+          node -e "
+            const fs = require('fs');
+            const os = require('os');
+            const path = require('path');
+            fs.writeFileSync(
+              path.join(os.homedir(), '.twenty', 'config.json'),
+              JSON.stringify({
+                version: 1,
+                remotes: {
+                  target: {
+                    apiUrl: process.env.API_URL,
+                    apiKey: process.env.API_KEY,
+                    accessToken: process.env.API_KEY,
+                  },
+                },
+              }),
+            );
+          "
+
+      - name: Install published app
+        run: yarn twenty app:install --remote target

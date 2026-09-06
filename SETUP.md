@@ -54,6 +54,12 @@ set these repository values in GitHub:
 The workflow passes both values to the Twenty deployment action. Do not put a
 workspace hostname or API key in a tracked file.
 
+To install a version that CD already published, run the manual **Install
+published app** workflow in GitHub Actions. It does not run on pushes. Use it
+only after the matching CD workflow has finished successfully. The manual
+workflow installs the app into the configured workspace and runs eligible
+install hooks.
+
 Before you merge a deployable change, increase `package.json` by `0.0.1` in the
 same commit. Metadata, logic, roles, front components, page layouts, and shipped
 dependency changes are deployable. Documentation, comments, and tests are not.
@@ -149,5 +155,9 @@ destroy count in that workflow's log before you approve a metadata change.
 For a CD failure, confirm that `TWENTY_DEPLOY_URL` is an explicit workspace URL and that
 `TWENTY_DEPLOY_API_KEY` can deploy the app. If Twenty rejects the package version,
 increase `package.json` only when the change is deployable.
+
+For a manual installation failure, open the **Install published app** workflow.
+Confirm that its target values are configured and that CD has already published
+the package version. The manual workflow does not publish a package.
 
 For Twenty platform issues, use the [Twenty troubleshooting guide](https://docs.twenty.com/developers/extend/apps/getting-started/troubleshooting).

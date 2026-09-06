@@ -6,6 +6,7 @@ All notable changes to this application are documented in this file.
 
 - Fix local typechecking for derived Deal and Project field updates.
 - Verify that the generated CI schema allows both fields in update inputs.
+- Add a manual workflow to install a version after CD publishes it.
 
 ## 0.1.13
 

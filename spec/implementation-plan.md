@@ -122,9 +122,10 @@ Where this plan says "the CI workspace" it means that instance.
   credentials through `TWENTY_API_URL` and `TWENTY_API_KEY`, which the spawn
   action already exports.
 
-A production apply still happens only through CD in `.github/workflows/cd.yml`,
-which reads its target from the `TWENTY_DEPLOY_URL` repository variable and its
-key from the `TWENTY_DEPLOY_API_KEY` secret.
+CD in `.github/workflows/cd.yml` publishes a production package. The manual
+`.github/workflows/install-published-app.yml` workflow installs a published
+version when the maintainer directs it. Both workflows read the workspace URL
+from `TWENTY_DEPLOY_URL` and the deployment key from `TWENTY_DEPLOY_API_KEY`.
 
 ### Verified SDK capabilities
 
@@ -811,7 +812,8 @@ from real use rather than from this plan.
 ### Run it and learn from it
 
 - [x] Install the reviewed version into a clean CI workspace first.
-- [x] Deploy the same version to the hosted workspace through CD.
+- [ ] Install the version published by CD into the hosted workspace through the
+  manual installation workflow.
 - [ ] Confirm that the deploy removes the old landing-page component, page
   layout, and navigation item shown in the reviewed metadata plan.
 - [ ] Use the app for real work: real Deals, real Projects, real follow-up Tasks.

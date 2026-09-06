@@ -171,6 +171,25 @@ under that name for every object, and reusing it gives you two identically named
 Do not add a navigation menu item for the view. See Navigation menu items in
 CLAUDE.md: the maintainer adds sidebar entries by hand.
 
+## Package operational worklists
+
+The package defines four table views for the operational dashboard. `Open
+Deals` excludes Won and Lost Deals and sorts by the latest update. `Active
+Projects` filters to Active Projects, sorts by `annualizedValue` descending,
+and shows the annualized USD value. `Overdue follow-ups` filters incomplete
+Tasks whose due date is in the past. `Project data quality` uses an OR group of
+`IS_EMPTY` filters for `status`, `billingType`, and `value`.
+
+`operational-dashboard.ts` packages these views in a Dashboard page layout with
+one grid tab. Each `RECORD_TABLE` widget has a record limit of 10. The tables
+are worklists, not aggregate reports. Do not present their truncated rows or
+table footers as revenue or count metrics.
+
+The current SDK cannot package aggregate chart widgets. Keep current revenue,
+projected revenue, Deal counts, lead-source mix, billing-type revenue, and
+kanban column totals out of the dashboard until a supported widget and CI
+validation are available.
+
 ## Verification
 
 Run the local static checks:

@@ -1,6 +1,7 @@
 import { defineView, ViewType } from 'twenty-sdk/define';
 
 const DEAL_STAGE_FIELD = 'bc9ce40a-1bd4-45cd-a391-b67dd59b3563';
+const DEAL_PROBABILITY_FIELD = '28456522-dc92-42de-85c5-42313f24dd37';
 
 export default defineView({
   universalIdentifier: '3cc2f458-c70b-4473-bc2b-69d4b3f8dbbe',
@@ -10,6 +11,13 @@ export default defineView({
   position: 0,
   type: ViewType.KANBAN,
   mainGroupByFieldMetadataUniversalIdentifier: DEAL_STAGE_FIELD,
+  fields: [
+    {
+      universalIdentifier: 'b4b8e0e5-efff-4f29-9c08-408b7e96e655',
+      fieldMetadataUniversalIdentifier: DEAL_PROBABILITY_FIELD,
+      position: 0,
+    },
+  ],
   groups: [
     { universalIdentifier: 'a95dc927-b409-43dc-8173-18f2054165a7', fieldValue: 'PIPELINE', position: 0 },
     { universalIdentifier: 'dd836b7d-f359-41ae-9ab2-d51ab816173d', fieldValue: 'OUTREACH', position: 1 },

@@ -721,18 +721,18 @@ its tab with `yarn twenty dev:add pageLayout` and
 Define one `DASHBOARD` page layout with a `GRID` tab and four `RECORD_TABLE`
 widgets. Use a `recordLimit` of 10 for every widget.
 
-- [ ] Open Deals. A Deal view that excludes Won and Lost, sorted by update date.
-- [ ] Active Projects. A Project view filtered to status Active, sorted by
+- [x] Open Deals. A Deal view that excludes Won and Lost, sorted by update date.
+- [x] Active Projects. A Project view filtered to status Active, sorted by
   `annualizedValue` descending. Show the USD annualized value.
-- [ ] Overdue follow-ups. A Task view for incomplete Tasks whose due date is in
+- [x] Overdue follow-ups. A Task view for incomplete Tasks whose due date is in
   the past.
-- [ ] Data quality. A Project view for records missing `status`, `billingType`,
+- [x] Data quality. A Project view for records missing `status`, `billingType`,
   or `value`, using `IS_EMPTY` filters in an `OR` filter group.
 
 Then finish the Deals board:
 
-- [ ] Show `probability` on the Deals board.
-- [ ] Do not add a navigation menu item. The maintainer adds the sidebar entry by
+- [x] Show `probability` on the Deals board.
+- [x] Do not add a navigation menu item. The maintainer adds the sidebar entry by
   hand, as with every other object view.
 
 ### Add when Twenty supports aggregates
@@ -750,13 +750,13 @@ widget and CI accepts the metadata:
 ### Acceptance criteria
 
 - [ ] All four worklists appear on the packaged dashboard.
-- [ ] Every dashboard widget uses a value in the installed `WidgetType` enum.
-- [ ] Every widget uses a packaged view and a `recordLimit` of 10.
-- [ ] The dashboard does not show a table footer as a revenue or count metric.
-- [ ] The Active Projects view displays each record's USD `annualizedValue`.
-- [ ] The Open Deals view excludes Won and Lost Deals.
-- [ ] The Deals board displays the stage-derived `probability`.
-- [ ] The Data quality view exposes Projects missing fields needed for revenue
+- [x] Every dashboard widget uses a value in the installed `WidgetType` enum.
+- [x] Every widget uses a packaged view and a `recordLimit` of 10.
+- [x] The dashboard does not show a table footer as a revenue or count metric.
+- [x] The Active Projects view displays each record's USD `annualizedValue`.
+- [x] The Open Deals view excludes Won and Lost Deals.
+- [x] The Deals board displays the stage-derived `probability`.
+- [x] The Data quality view exposes Projects missing fields needed for revenue
   reporting.
 
 ### Verification
@@ -766,7 +766,7 @@ widget and CI accepts the metadata:
 - [ ] Confirm in CI that the destroy count is zero before the views and page
   layout reach the hosted workspace.
 - [ ] Let the maintainer inspect the applied dashboard and verify each worklist.
-- [ ] Confirm that no widget uses an unsupported chart or aggregate type.
+- [x] Confirm that no widget uses an unsupported chart or aggregate type.
 - [ ] Do not use browser automation, screenshots, or end-to-end UI tests.
 
 ## Phase 6: Deploy the app and build on it

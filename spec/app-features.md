@@ -104,13 +104,28 @@ Deal or a Project to more than one Person. Both objects set
 
 `src/views/deals-board.ts` defines Deals board, a kanban view on Deal grouped
 by `stage`, with one column per stage in the same order as the field's
-options.
+options. It displays the stage-derived `probability` field.
 
 `src/views/projects-list.ts` defines Projects list, a table view on Project.
 
-Neither view has a navigation menu item. See CLAUDE.md's Navigation menu
-items section: the maintainer adds each sidebar entry by hand in the Twenty
-UI, and sets its position and icon there.
+The package also defines four table views used by the operational dashboard:
+
+- `Open Deals` excludes Won and Lost Deals and sorts by latest update.
+- `Active Projects` filters to Active Projects, sorts by `annualizedValue`
+  descending, and shows each record's USD annualized value.
+- `Overdue follow-ups` shows incomplete Tasks with a due date in the past.
+- `Project data quality` shows Projects missing `status`, `billingType`, or
+  `value`.
+
+`src/page-layouts/operational-dashboard.ts` defines a Dashboard page layout
+with one grid tab. Its four `RECORD_TABLE` widgets each show at most 10 records
+from one of the packaged worklist views. The dashboard intentionally has no
+aggregate revenue or count metrics because the installed SDK does not support
+packaged aggregate widgets.
+
+No view or page layout has a packaged navigation menu item. See CLAUDE.md's
+Navigation menu items section: the maintainer adds each sidebar entry by hand
+in the Twenty UI, and sets its position and icon there.
 
 ## Logic functions
 
@@ -122,6 +137,6 @@ value already matches the result.
 
 ## Not defined
 
-The app package has no front component, page layout, navigation menu item,
-skill, agent, or connection provider. It has no workflow that sets Company's
-`clientStatus` to Client. The maintainer builds that workflow in the Twenty UI.
+The app package has no front component, navigation menu item, skill, agent, or
+connection provider. It has no workflow that sets Company's `clientStatus` to
+Client. The maintainer builds that workflow in the Twenty UI.

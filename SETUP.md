@@ -70,6 +70,8 @@ After CD deploys the app, complete these workspace-only steps in the Twenty UI:
 2. Choose its sidebar position and icon.
 3. Add a sidebar entry for the **Projects list** view on Project.
 4. Choose its sidebar position and icon.
+5. Add a sidebar entry for the **Operational dashboard** page layout.
+6. Choose its sidebar position and icon.
 
 These sidebar entries are intentionally not packaged. The maintainer controls
 their placement and icons in the workspace.

@@ -1,74 +1,86 @@
-# Setup
+# Setup and operations
 
-Follow these steps to get your app running locally.
+Use this guide to prepare a checkout, understand the deployment path, and
+complete the workspace configuration that the app package does not own. Read
+[AGENTS.md](AGENTS.md) before you change the app. It defines the repository's
+implementation, testing, remote, and versioning rules.
 
-## Prerequisites
+## Local checkout
 
-- Node.js 24.14.1, managed with nvm
-- Yarn 4
-- Docker (to run the local Twenty server)
+This repository has no local Twenty development environment. Do not start a
+Twenty server, run `yarn twenty dev`, or create a named Twenty remote. CI creates
+a temporary Twenty workspace for integration testing. CD is the only path that
+updates the live workspace.
 
-## Steps
+Install the tools needed for static checks:
 
-1. Select the project's Node version and enable Corepack:
+1. Select the Node version from `.nvmrc` and enable Corepack.
 
    ```bash
    nvm use
    corepack enable
    ```
 
-2. Install dependencies:
+2. Install the locked dependencies.
 
    ```bash
-   yarn install
+   yarn install --immutable
    ```
 
-3. Start the local Twenty server:
+3. Run the local static checks.
 
    ```bash
-   yarn twenty docker:start
+   yarn lint
+   yarn typecheck
+   yarn test:unit
    ```
 
-   Check the server status at any time with `yarn twenty docker:status`.
+Run `yarn test` in CI. Its integration setup installs the app into a temporary
+Twenty workspace and generates the workspace-specific client.
 
-4. Start the development server and sync your app:
+## Production deployment
 
-   ```bash
-   yarn twenty dev
-   ```
+GitHub Actions deploys every push to `main` through
+[`.github/workflows/cd.yml`](.github/workflows/cd.yml). Before the first deploy,
+set these repository values in GitHub:
 
-5. Open [http://localhost:2020](http://localhost:2020) and log in with the default development credentials: `tim@apple.dev` / `tim@apple.dev`.
+- `SERVER_URL` repository variable. Set it to the explicit URL of the hosted
+  Twenty workspace.
+- `TWENTY_DEPLOY_API_KEY` repository secret. Give the key permission to deploy
+  this app.
 
-## Verifying your setup
+The workflow passes both values to the Twenty deployment action. Do not put a
+workspace hostname or API key in a tracked file.
 
-- `yarn lint` - Lint the project with oxlint
-- `yarn typecheck` - Type-check the project
-- `yarn test:unit` - Run unit tests
-- `yarn test` - Run integration tests
+Before you merge a deployable change, increase `package.json` by `0.0.1` in the
+same commit. Metadata, logic, roles, front components, page layouts, and shipped
+dependency changes are deployable. Documentation, comments, and tests are not.
+Twenty rejects a version that is not newer than the installed version.
 
-## Deploy to production
+Do not use a remote name to identify a workspace. A remote can point anywhere.
+If a future maintenance command must reach a workspace, pass its explicit URL and
+confirm that URL before the command runs. Never pass `--force` to
+`yarn twenty apply`.
 
-The CD workflow deploys a package to the production Twenty server on each push to `main`. The installed app has auto-upgrade enabled, so Twenty applies each newer package version in the background.
-GitHub Actions needs a `TWENTY_DEPLOY_API_KEY` repository secret with permission to deploy apps. Keep the key out of the repository.
+After CD deploys the app, complete these workspace-only steps in the Twenty UI:
 
-Before the first CI deployment, create the app registration from this checkout:
+1. Add a sidebar entry for the **Deals board** view on Deal.
+2. Choose its sidebar position and icon.
+3. Add a sidebar entry for the **Projects list** view on Project.
+4. Choose its sidebar position and icon.
 
-```bash
-yarn twenty apply --remote production
-```
-
-Before each package deployment, increase the version in `package.json`. Twenty rejects a package version that is already deployed.
-
-For every intentional production metadata change, run this gate from the app checkout before the package release:
-
-```bash
-yarn twenty plan --remote production
-
-yarn twenty apply --remote production
-```
-
-Review the plan before running `apply`. The apply command changes production metadata; do not run it when the plan includes unintended changes or deletions.
+These sidebar entries are intentionally not packaged. The maintainer controls
+their placement and icons in the workspace.
 
 ## Troubleshooting
 
-See the [troubleshooting guide](https://docs.twenty.com/developers/extend/apps/getting-started/troubleshooting) or ask on [Discord](https://discord.gg/cx5n4Jzs57).
+For a CI failure, start with the failing workflow step. The CI workflow runs lint,
+type checking, unit tests, and integration tests against a temporary workspace.
+Read the app-sync metadata plan and destroy count in that workflow's log before
+you approve a metadata change.
+
+For a CD failure, confirm that `SERVER_URL` is an explicit workspace URL and that
+`TWENTY_DEPLOY_API_KEY` can deploy the app. If Twenty rejects the package version,
+increase `package.json` only when the change is deployable.
+
+For Twenty platform issues, use the [Twenty troubleshooting guide](https://docs.twenty.com/developers/extend/apps/getting-started/troubleshooting).

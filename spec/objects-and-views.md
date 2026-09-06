@@ -1,29 +1,30 @@
-# How to build the Deal and Project model
+# Deal and Project model
 
-This guide builds the sales and delivery model for ThinkBreak CRM: a Deal object on a
+This reference describes ThinkBreak CRM's sales and delivery model: a Deal object on a
 kanban board, a Project object, and the contact links between them and Company.
 
-Read the constraints at the end before you start. Several of them changed the design,
-and two of them are bugs in twenty-sdk 2.37.0 that you cannot work around.
+Read the constraints at the end before you change the model. Several constraints shaped
+the design, and two are bugs in twenty-sdk 2.37.0 that the app cannot work around.
 
-## Before you start
+## Before you change the model
 
-Scaffold every entity with the CLI. It generates the UUID v4 identifiers that the
-manifest requires, and hand-written files omit them:
+Create each new app entity with the CLI. It generates the UUID v4 identifiers that the
+manifest requires:
 
 ```bash
 yarn twenty dev:add object
 yarn twenty dev:add field
 yarn twenty dev:add view
-yarn twenty dev:add navigationMenuItem
 ```
 
-The `twenty` CLI defaults to the `production` remote, which is the live CRM. Pass
-`--remote local` on every command that reaches a server.
+Do not create a navigation menu item for a new object view. The maintainer adds the
+sidebar entry in the Twenty UI and chooses its position and icon.
 
-Do not start a dev server and do not test through the web UI. Verify with `yarn
-typecheck`, `yarn lint`, `yarn twenty plan --remote local`, and the metadata API at
-`http://localhost:2020/metadata`.
+This repository has no local Twenty development environment and no named remotes. Do
+not start a dev server or test through the web UI. Run `yarn typecheck`, `yarn lint`,
+and `yarn test:unit` locally. CI installs the app into a temporary workspace for the
+integration tests. CD is the only path to the hosted workspace. For the full operating
+procedure, see [SETUP.md](../SETUP.md) and [AGENTS.md](../AGENTS.md).
 
 ## Build Deal as a custom object, not a renamed Opportunity
 
@@ -167,37 +168,22 @@ under that name for every object, and reusing it gives you two identically named
 Do not add a navigation menu item for the view. See Navigation menu items in
 CLAUDE.md: the maintainer adds sidebar entries by hand.
 
-## Verify
+## Verification
 
-Run these in order. If one fails, fix it before you continue:
+Run the local static checks:
 
 ```bash
 yarn typecheck
 yarn lint
 yarn test:unit
-yarn twenty plan --remote local
 ```
 
-Read the plan before applying. Confirm the destroy count is zero, then apply:
+CI runs `yarn test` in a temporary workspace. Read the metadata plan and destroy count
+from the CI log before you approve a deployable model change.
 
-```bash
-yarn twenty apply --remote local
-```
-
-Check the result against the server rather than trusting the plan:
-
-```bash
-curl -s -X POST http://localhost:2020/metadata \
-  -H "Authorization: Bearer $LOCAL_API_KEY" \
-  -H "Content-Type: application/json" \
-  -d '{"query":"query { objects(paging:{first:200}) { edges { node { nameSingular fieldsList { name label type } } } } }"}'
-```
-
-The local API key is in `~/.twenty/config.json` under `remotes.local.apiKey`.
-
-Bump the version in `package.json` before any deployment. Twenty rejects a package
-version that is already deployed, and CD fails with `version must be higher than the
-currently deployed version`.
+Increase `package.json` by `0.0.1` in the same commit as every deployable model change.
+Documentation-only changes do not need a version increase. Twenty rejects a package
+version that is not newer than the installed version.
 
 ## Known constraints in twenty-sdk 2.37.0
 

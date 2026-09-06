@@ -206,30 +206,30 @@ Repository: Current repository.
 
 ### Tasks
 
-- [ ] Rewrite `SETUP.md` as a task-focused installation and operations guide.
-- [ ] Keep local setup, production deployment, and troubleshooting as distinct
+- [x] Rewrite `SETUP.md` as a task-focused installation and operations guide.
+- [x] Keep local setup, production deployment, and troubleshooting as distinct
   sections in `SETUP.md`.
-- [ ] Document the manual sidebar steps for the Deal and Project views.
-- [ ] Document the package version rule. Increase `package.json` by `0.0.1` in
+- [x] Document the manual sidebar steps for the Deal and Project views.
+- [x] Document the package version rule. Increase `package.json` by `0.0.1` in
   the same change as every deployable metadata or application change.
-- [ ] Document that this project has no local development environment. CI is the
+- [x] Document that this project has no local development environment. CI is the
   verification target and CD is the only path to a live workspace.
-- [ ] Remove the `--remote local` and `--remote production` command examples from
+- [x] Remove the `--remote local` and `--remote production` command examples from
   `SETUP.md`. Neither remote resolves, and the names have pointed at the wrong
   targets before.
-- [ ] Document that a remote's name is not proof of its target. Any command that
+- [x] Document that a remote's name is not proof of its target. Any command that
   reaches a live workspace takes an explicit URL, and the operator confirms that
   URL before running it.
-- [ ] State that no maintainer or agent passes `--force` to `yarn twenty apply`.
-- [ ] Point `SETUP.md` and `README.md` at `AGENTS.md` instead of restating the
+- [x] State that no maintainer or agent passes `--force` to `yarn twenty apply`.
+- [x] Point `SETUP.md` and `README.md` at `AGENTS.md` instead of restating the
   implementation rules.
-- [ ] Keep `AGENTS.md` and `CLAUDE.md` identical. Edit both in the same commit.
-- [ ] Update `spec/app-features.md` after each model change.
-- [ ] Update `spec/objects-and-views.md` when an object, field, relation, value
+- [x] Keep `AGENTS.md` and `CLAUDE.md` identical. Edit both in the same commit.
+- [x] Update `spec/app-features.md` after each model change.
+- [x] Update `spec/objects-and-views.md` when an object, field, relation, value
   rule, or view changes.
-- [ ] Replace the placeholder product copy in `README.md` with a short
+- [x] Replace the placeholder product copy in `README.md` with a short
   description of the app and links to the setup guide, the specs, and this plan.
-- [ ] Update `CHANGELOG.md` with the changes already released after `0.1.1`.
+- [x] Update `CHANGELOG.md` with the changes already released after `0.1.1`.
 
 `AGENTS.md` and `CLAUDE.md` are byte-identical, and they already carry entity
 creation, remotes, UUIDs, navigation, testing, versioning, and deployment. A
@@ -238,22 +238,22 @@ third copy of those rules would drift from the other two, so this plan adds no
 
 ### Acceptance criteria
 
-- [ ] A new maintainer can identify every manual Twenty UI step before running
+- [x] A new maintainer can identify every manual Twenty UI step before running
   an apply command.
-- [ ] The documentation distinguishes packaged metadata from settings that live
+- [x] The documentation distinguishes packaged metadata from settings that live
   only in the Twenty UI.
-- [ ] The documentation uses the field names and commands that exist in the
+- [x] The documentation uses the field names and commands that exist in the
   repository.
-- [ ] Documentation-only changes do not bump the package version.
+- [x] Documentation-only changes do not bump the package version.
 
 ### Verification
 
-- [ ] Compare object and field claims with `src/objects/` and `src/fields/`.
-- [ ] Compare view and navigation claims with `src/views/` and
+- [x] Compare object and field claims with `src/objects/` and `src/fields/`.
+- [x] Compare view and navigation claims with `src/views/` and
   `src/navigation-menu-items/`.
-- [ ] Search the documentation for production-facing commands that name a remote
+- [x] Search the documentation for production-facing commands that name a remote
   or omit an explicit workspace URL.
-- [ ] Check every relative Markdown link from the repository root.
+- [x] Check every relative Markdown link from the repository root.
 
 ## Phase 2: Clean the app to a reviewed baseline
 

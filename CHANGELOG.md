@@ -2,11 +2,15 @@
 
 All notable changes to this application are documented in this file.
 
+## 0.1.15
+
+- Replace the failed manual installation workflow with a read-only Operational
+  dashboard verification workflow.
+
 ## 0.1.14
 
 - Fix local typechecking for derived Deal and Project field updates.
 - Verify that the generated CI schema allows both fields in update inputs.
-- Add a manual workflow to install a version after CD publishes it.
 
 ## 0.1.13
 

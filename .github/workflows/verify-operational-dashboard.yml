@@ -1,0 +1,55 @@
+name: Verify operational dashboard
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check verification target is configured
+        env:
+          API_URL: ${{ vars.TWENTY_DEPLOY_URL }}
+          API_KEY: ${{ secrets.TWENTY_DEPLOY_API_KEY }}
+        run: |
+          if [ -z "$API_URL" ]; then
+            echo "TWENTY_DEPLOY_URL is not set."
+            exit 1
+          fi
+          if [ -z "$API_KEY" ]; then
+            echo "TWENTY_DEPLOY_API_KEY is not set."
+            exit 1
+          fi
+
+      - name: Verify Operational dashboard record
+        env:
+          API_URL: ${{ vars.TWENTY_DEPLOY_URL }}
+          API_KEY: ${{ secrets.TWENTY_DEPLOY_API_KEY }}
+        run: |
+          graphql_url="${API_URL%/}/graphql"
+          request_body="$(node -e 'process.stdout.write(JSON.stringify({query: `query { dashboard(filter: { id: { eq: "9fc9c362-a362-4079-814d-268fcd9436c7" } }) { id title pageLayoutId } }`}));')"
+          response="$(curl --fail-with-body --silent --show-error \
+            --header "Authorization: Bearer $API_KEY" \
+            --header 'Content-Type: application/json' \
+            --data "$request_body" \
+            "$graphql_url")"
+          node -e '
+            const result = JSON.parse(process.argv[1]);
+            const dashboard = result.data?.dashboard;
+            if (!dashboard) {
+              throw new Error("Operational dashboard record was not found.");
+            }
+            if (dashboard.id !== "9fc9c362-a362-4079-814d-268fcd9436c7") {
+              throw new Error("Operational dashboard record ID did not match.");
+            }
+            if (dashboard.title !== "Operational dashboard") {
+              throw new Error("Operational dashboard title did not match.");
+            }
+            if (typeof dashboard.pageLayoutId !== "string" || dashboard.pageLayoutId.length === 0) {
+              throw new Error("Operational dashboard page layout was missing.");
+            }
+            console.log(JSON.stringify(dashboard));
+          ' "$response"

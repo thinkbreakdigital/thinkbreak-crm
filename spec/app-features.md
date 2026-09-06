@@ -16,17 +16,6 @@ junction pattern behind `dealContact` and `projectContact`, see
 `src/default-role.ts` defines the app's default role. It can read, update,
 and soft-delete every object's records. It cannot hard-delete any record.
 
-## Landing page
-
-`src/page-layouts/main-page.page-layout.ts` defines a standalone page named
-ThinkBreak CRM, with one tab, Overview, holding one widget. The widget
-renders `src/front-components/main-page.tsx`, a front component that links
-out to the Twenty extend-apps docs for the data model, logic, layout, and
-operations.
-
-`src/navigation-menu-items/main-page.navigation-menu-item.ts` puts this page
-first in the sidebar, at position -1.
-
 ## Objects
 
 ### Company (standard object)
@@ -122,7 +111,7 @@ UI, and sets its position and icon there.
 
 ## Not defined
 
-The app package has no logic function, skill, agent, or connection provider,
-and no role beyond the default role in `src/default-role.ts`. It has no
-workflow that sets Company's `clientStatus` to Client; the maintainer builds
-that in the Twenty UI.
+The app package has no front component, page layout, navigation menu item,
+logic function, skill, agent, or connection provider. It has no role beyond the
+default role in `src/default-role.ts`, and no workflow that sets Company's
+`clientStatus` to Client. The maintainer builds that workflow in the Twenty UI.

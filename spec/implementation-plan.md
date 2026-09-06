@@ -262,33 +262,33 @@ builds on that commit.
 
 ### Tasks
 
-- [ ] Keep the current Company, Person, Deal, Project, `dealContact`, and
+- [x] Keep the current Company, Person, Deal, Project, `dealContact`, and
   `projectContact` structure. Leave the `internalNotes` metadata in place for
   now. Phase 3 removes it after the data migration is approved.
-- [ ] Remove the landing-page front component, page layout, and navigation item.
-- [ ] Remove credentials, hostnames, account IDs, owner IDs, form slugs, and
+- [x] Remove the landing-page front component, page layout, and navigation item.
+- [x] Remove credentials, hostnames, account IDs, owner IDs, form slugs, and
   source mappings from tracked files.
-- [ ] Keep every generated identifier a valid UUID v4.
-- [ ] Leave `src/fields/deal-stage.ts` alone, including its option values,
+- [x] Keep every generated identifier a valid UUID v4.
+- [x] Leave `src/fields/deal-stage.ts` alone, including its option values,
   labels, colors, positions, and `PIPELINE` default.
-- [ ] Leave the `src/views/deals-board.ts` kanban groups alone. Each group pins a
+- [x] Leave the `src/views/deals-board.ts` kanban groups alone. Each group pins a
   stage value to its own universal identifier, so the board and the field stay
   in step only while both are left alone.
-- [ ] Keep the rule that object views do not create sidebar entries.
+- [x] Keep the rule that object views do not create sidebar entries.
 - [ ] Tag the reviewed baseline before Phase 3 starts.
 
 ### Acceptance criteria
 
-- [ ] `src/fields/deal-stage.ts` and the `src/views/deals-board.ts` groups are
+- [x] `src/fields/deal-stage.ts` and the `src/views/deals-board.ts` groups are
   unchanged from before this phase.
-- [ ] Tracked files contain no secret-shaped strings or environment bindings.
-- [ ] The app creates no landing page and no landing-page navigation item.
+- [x] Tracked files contain no secret-shaped strings or environment bindings.
+- [x] The app creates no landing page and no landing-page navigation item.
 - [ ] The package identity and the CD deployment configuration still work.
 
 ### Verification
 
-- [ ] Run `yarn typecheck`, `yarn lint`, and `yarn test:unit`.
-- [ ] Run a secret scan against tracked files.
+- [x] Run `yarn typecheck`, `yarn lint`, and `yarn test:unit`.
+- [x] Run a secret scan against tracked files.
 - [ ] Run the branch through CI and review the resulting plan.
 - [ ] Allow only the reviewed landing-page removals in the destroy list at this
   phase. Everything else must show a destroy count of zero.

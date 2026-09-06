@@ -2,10 +2,3 @@ export const APP_DISPLAY_NAME = 'ThinkBreak CRM';
 export const APP_DESCRIPTION = 'This project is ThinkBreaks personal organizational CRM, as well as a showcase of the Twenty platform for potential clients.';
 export const APPLICATION_UNIVERSAL_IDENTIFIER = '2d5fcd51-16dd-43ca-a1ac-b1ca5aa2d354';
 export const DEFAULT_ROLE_UNIVERSAL_IDENTIFIER = '378113bd-1355-4d20-b7ec-a6a267f4d0fc';
-export const MAIN_PAGE_FRONT_COMPONENT_UNIVERSAL_IDENTIFIER =
-  '6f5337e8-9896-4e78-8653-782553816a19';
-export const MAIN_PAGE_LAYOUT_UNIVERSAL_IDENTIFIER = '9bc44301-6409-4e0c-9122-8f5137811d6f';
-export const MAIN_PAGE_LAYOUT_TAB_UNIVERSAL_IDENTIFIER = '188ed023-e2b7-4fa4-9939-eb28c22a80b5';
-export const MAIN_PAGE_WIDGET_UNIVERSAL_IDENTIFIER = '8fe5c602-5cfd-43a7-90c9-aac7abf3f404';
-export const MAIN_PAGE_NAVIGATION_MENU_ITEM_UNIVERSAL_IDENTIFIER =
-  '413ea5ea-2e24-4b68-abf7-526280df4223';

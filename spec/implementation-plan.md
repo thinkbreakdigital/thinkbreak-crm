@@ -300,129 +300,29 @@ Add the smallest model changes needed for intake and native reporting.
 
 Create each entity with `yarn twenty dev:add`. Do not handwrite generated IDs.
 
-Source and tooling are tracked. Migration state is not: the manifest, the value
-export, and the rollback set belong to the live workspace and stay out of Git.
+Source is tracked. The maintainer approved direct removal of the redundant
+`internalNotes` fields in this development workspace, so Phase 3 has no
+migration tooling, migration state, value export, or rollback set.
 
 ### Remove redundant `internalNotes` fields
 
 Every object already has built-in Notes, so the Company, Person, Deal, and
 Project `internalNotes` fields go away.
 
-The maintainer approved direct removal in this development workspace. Do not
-build or run a migration runner, preserve source values, or create rollback data.
-The migration design below is superseded and retained only as historical context.
+The maintainer approved direct removal. Do not build or run a migration runner,
+preserve source values, or create rollback data. The built-in Notes relation
+remains available on each object after the custom fields are removed.
 
-Implement the migration runner under `scripts/migrations/`. Use Node's built-in
-`fetch`, `crypto`, and file APIs. Do not add a dependency for this one
-migration.
-
-Write the runner in TypeScript at `scripts/migrations/migrate-internal-notes.ts`.
-`tsconfig.spec.json` and `vitest.unit.config.ts` both cover `scripts/`, so
-`yarn typecheck` and `yarn test:unit` check the runner and its tests the way they
-check `src/`. A `.mjs` file would be invisible to both, and these tests gate a
-destructive production migration. Keep the runner out of `src/` so it never
-reaches the built package.
-
-Keep the parts worth testing in pure functions that take values and return
-values: manifest construction, source hashing, row state transitions, and the
-decision to skip, write, or stop. Confine `fetch` to a thin caller the tests do
-not need.
-
-The runner takes its target explicitly, as `--api-url` and `--api-key` or as
-`TWENTY_API_URL` and `TWENTY_API_KEY`. It never reads a named remote from
-`~/.twenty/config.json` and never consults `defaultRemote`. No remotes are
-configured for this project, and remote names here have pointed at the wrong
-targets before, so a name must not be able to select a workspace.
-
-It refuses a missing or unparseable URL, a missing key, an apply against any URL
-other than the one recorded in the approved manifest, and an apply without both
-`--apply` and that manifest path. A CI rehearsal is required before a production
-dry-run.
-
-The dry-run creates an ignored local manifest under
-`.local/migrations/internal-notes/`. The manifest contains one row for each
-non-empty source value:
-
-- Source object and record ID.
-- SHA-256 hash of the exact source value.
-- A pre-generated UUID v4 for the Note.
-- A pre-generated UUID v4 for the NoteTarget relation.
-- Planned Note title and target type.
-- Status and timestamps for resume handling.
-
-Keep customer note text out of the manifest. The apply command reads the source
-value again and stops if its SHA-256 hash differs from the reviewed manifest.
-The dry-run report may show the text for review, but it must be stored only in
-the ignored migration directory and must never be committed.
-
-On apply, use the IDs in the manifest when creating the stock Note and
-NoteTarget. Both GraphQL create inputs accept caller-supplied IDs and an upsert
-flag in the generated 2.37.0 schema. Create or verify the Note first. Then create
-or verify its NoteTarget. Store the exact source text in `bodyV2.markdown`. If
-the process stops after either write, the next run reuses the same UUID v4
-values and completes the missing step instead of creating duplicates.
-
-The completion checkpoint is an ID lookup, not a string comparison in the
-runner. `NoteFilterInput.id` is a `UUIDFilter` and `RichTextFilterInput.markdown`
-is a `StringFilter`, so one query settles existence and content together:
-
-```
-note(filter: { id: { eq: NOTE_UUID }, bodyV2: { markdown: { eq: SOURCE_TEXT } } })
-```
-
-A hit means that row is written and correct. Mark the row complete once that
-query and the matching `noteTarget` lookup both return a record. The server
-performs the comparison, so the runner carries no normalization rule of its own.
-RICH_TEXT is a composite of two plain TEXT subfields, so exact equality is the
-right expectation. Treat a mismatch as a stop, not as something to normalize
-away.
-
-- [ ] Add `.local/migrations/` to `.gitignore` before the runner can write state.
-- [ ] Add `--dry-run`, `--apply`, `--manifest`, and `--resume` modes.
-- [ ] Reject empty, missing, malformed, or changed source values before a write.
-- [ ] Count non-empty `internalNotes` values for Company, Person, Deal, and
-  Project.
-- [ ] Produce a dry-run report that shows every source record and planned Note.
-- [ ] Export the original source record IDs and exact values before production
-  apply. Store the export outside Git with access limited to the operator.
-- [ ] Add a CI rehearsal job that seeds a handful of records with `internalNotes`
-  values in the CI workspace, then runs the migration end to end against it.
-  Include a forced partial failure and a resume.
-- [ ] In that rehearsal, assert that `bodyV2.blocknote` comes back non-null after
-  a markdown-only write. In the SDK field-type table `blocknote` is nullable and
-  optional while `markdown` is nullable and required, so a markdown-only write
-  could store correct data that the editor renders as empty, and the equality
-  query would still pass. Asserting on the subfield settles it headlessly, with
-  no UI and no human in the loop.
-- [ ] If `blocknote` comes back null, stop and decide how to populate it before
-  any production dry-run. Do not guess at the block format in the runner.
-- [ ] In the CI rehearsal, submit the same caller-supplied Note and NoteTarget
-  IDs twice with upsert enabled. Stop the migration design if Twenty creates
-  duplicates or changes either ID.
-- [ ] Confirm that rerunning the same manifest creates no additional Note or
-  NoteTarget records.
-- [ ] Run the production dry-run against the deployed workspace, passing its URL
-  explicitly as `--api-url`. Review counts, hashes, and target types without
-  writing records. Never name a remote, here or anywhere else.
-- [ ] Require the maintainer's explicit approval before the production apply.
-- [ ] Confirm migrated Notes by count, the `bodyV2.markdown` equality query,
-  relation target, and maintainer spot checks.
-- [ ] Record the Note and NoteTarget IDs as the rollback set. The rollback removes
-  only those created IDs and restores `internalNotes` from the protected export.
-- [ ] Remove the four `internalNotes` fields only after the maintainer approves
-  the migration result, rollback set, and destructive metadata plan.
-
-A clean workspace has nothing to migrate. This migration exists only for the
-deployed workspace that already holds values. Its apply is a live data change.
-It is not part of installing the app and never runs during a deploy.
+- [x] Remove the Company, Person, Deal, and Project `internalNotes` fields.
+- [x] Leave built-in Notes and their object relations unchanged.
 
 ### Add Project fields
 
-- [ ] Add `status` as a SELECT field.
-- [ ] Use Planned, Active, On Hold, Completed, and Cancelled as the options.
-- [ ] Add `annualizedValue` as a nullable CURRENCY field.
-- [ ] Treat `annualizedValue` as a derived field.
-- [ ] Do not edit `annualizedValue` manually.
+- [x] Add `status` as a SELECT field.
+- [x] Use Planned, Active, On Hold, Completed, and Cancelled as the options.
+- [x] Add `annualizedValue` as a nullable CURRENCY field.
+- [x] Treat `annualizedValue` as a derived field.
+- [x] Do not edit `annualizedValue` manually.
 
 CURRENCY contains `{ amountMicros, currencyCode }`. Apply these calculation
 rules:
@@ -440,14 +340,14 @@ needs no rounding rule.
 
 ### Add Deal fields
 
-- [ ] Add `probability` as a nullable NUMBER field that stores the percentage for
+- [x] Add `probability` as a nullable NUMBER field that stores the percentage for
   the Deal's current stage.
-- [ ] Add `leadSource` as a SELECT field.
-- [ ] Ship Website Form (`WEBSITE_FORM`), Manual (`MANUAL`), Business Card
+- [x] Add `leadSource` as a SELECT field.
+- [x] Ship Website Form (`WEBSITE_FORM`), Manual (`MANUAL`), Business Card
   (`BUSINESS_CARD`), and Other (`OTHER`) as the initial Lead Source options.
 - [ ] Allow workspace owners to add their own Lead Source options through
   Twenty's standard data-model settings.
-- [ ] Add `intakeSubmissionId` as a nullable TEXT field with `isUnique: true`.
+- [x] Add `intakeSubmissionId` as a nullable TEXT field with `isUnique: true`.
 - [ ] Keep `intakeSubmissionId` empty for manually created Deals.
 - [ ] Do not add fields for a form slug, raw request, intake summary, or
   organization-specific intake context.
@@ -502,7 +402,7 @@ automation product.
 
 - [ ] Confirm that the installed Twenty server accepts a field on the standard
   Task object by syncing the manifest in CI and reading the plan.
-- [ ] Add `automationKey` as a nullable TEXT field with `isUnique: true`.
+- [x] Add `automationKey` as a nullable TEXT field with `isUnique: true`.
 - [ ] Use `defineIndex` instead if the server rejects a unique field manifest.
 - [ ] Leave `automationKey` empty on manually created Tasks.
 - [ ] Hide `automationKey` from normal Task views.
@@ -540,24 +440,24 @@ Deal `probability`. Do not commit generated SDK files and do not weaken the
 custom-object boundary to `any`.
 
 - [ ] Scaffold each function with `yarn twenty dev:add logicFunction`.
-- [ ] Trigger the Project function on `project.created` and on
+- [x] Trigger the Project function on `project.created` and on
   `project.updated` scoped to `updatedFields: ['billingType', 'value']`.
-- [ ] Trigger the Deal function on `deal.created` and on `deal.updated` scoped to
+- [x] Trigger the Deal function on `deal.created` and on `deal.updated` scoped to
   `updatedFields: ['stage']`.
-- [ ] Keep the stage mapping in one exported constant that the function and its
+- [x] Keep the stage mapping in one exported constant that the function and its
   tests both import.
-- [ ] Stop with an actionable error on a stage that the mapping does not cover.
+- [x] Stop with an actionable error on a stage that the mapping does not cover.
   Do not leave a stale probability and do not guess a value.
-- [ ] Return without writing when the computed value already equals the stored
+- [x] Return without writing when the computed value already equals the stored
   value.
-- [ ] Prefer the last write when a record changes while the function runs. Do not
+- [x] Prefer the last write when a record changes while the function runs. Do not
   retry a calculation that a newer event supersedes.
-- [ ] Leave the derived field empty when a calculation fails. Never write a stale
+- [x] Leave the derived field empty when a calculation fails. Never write a stale
   or partial value.
-- [ ] Move the CI typecheck step after the integration-test step.
-- [ ] Verify that CI typecheck uses a generated schema containing Project
+- [x] Move the CI typecheck step after the integration-test step.
+- [x] Verify that CI typecheck uses a generated schema containing Project
   `annualizedValue` and Deal `probability`, not the fallback declarations.
-- [ ] Document each function, its trigger, and its failure modes in `SETUP.md`.
+- [x] Document each function, its trigger, and its failure modes in `SETUP.md`.
 
 Writing a derived field raises the same object's update event again, so either
 function can trigger itself. Two guards stop the loop. The `updatedFields`
@@ -568,11 +468,11 @@ filter is the first. The equality check above is the second.
 Define the packaged function before finalizing its role. Scope permissions to
 the objects and fields it actually reads or updates.
 
-- [ ] Use `objectPermissions` and `fieldPermissions` in `RoleConfig`.
-- [ ] Grant read access to the Project source fields and to Deal `stage`.
-- [ ] Grant update access only to Project `annualizedValue` and Deal
+- [x] Use `objectPermissions` and `fieldPermissions` in `RoleConfig`.
+- [x] Grant read access to the Project source fields and to Deal `stage`.
+- [x] Grant update access only to Project `annualizedValue` and Deal
   `probability` if Twenty accepts that field-level restriction.
-- [ ] Do not grant create, delete, destroy, restore, or soft-delete permissions.
+- [x] Do not grant create, delete, destroy, restore, or soft-delete permissions.
 - [ ] Confirm the exact role diff in the CI plan output.
 
 ### Handle existing records
@@ -613,14 +513,9 @@ This applies to the deployed workspace, not to the packaged app.
   record produces one write, not a loop.
 - [ ] Keep the calculation itself in a pure function that the unit tests import
   without a server or a generated client.
-- [ ] Add migration-runner tests for dry-run zero writes, a retry whose Note and
-  NoteTarget IDs already resolve, a failure after Note creation, a failure after
-  NoteTarget creation but before checkpoint completion, an equality query that
-  returns no record, a changed source hash, malformed IDs, and an empty source
-  set.
-- [ ] Verify that the rollback set contains only IDs created by the reviewed
-  manifest.
-- [ ] Run the integration tests before typecheck in CI so `appDevOnce` installs
+- [x] Skip migration-runner tests and rollback verification. The maintainer
+  approved direct field removal with no migration work.
+- [x] Run the integration tests before typecheck in CI so `appDevOnce` installs
   the schema and generates the workspace client.
 - [ ] Run `yarn typecheck`, `yarn lint`, and `yarn test:unit`.
 - [ ] Review the metadata diff in the CI plan output.

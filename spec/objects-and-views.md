@@ -50,6 +50,9 @@ An app package cannot do that for you.
 | `dealType` | SELECT | New Business, Expansion, Renewal |
 | `billingType` | SELECT | Recurring, Singular |
 | `value` | CURRENCY | Labelled Est. Annual Value; see Value and dashboard reporting below |
+| `probability` | NUMBER | Derived from `stage`; 10, 20, 30, 50, 75, 100, or 0 |
+| `leadSource` | SELECT | Website Form, Manual, Business Card, Other |
+| `intakeSubmissionId` | TEXT | Nullable, unique external idempotency key |
 | `company` | RELATION | MANY_TO_ONE to `company` |
 | `primaryContact` | RELATION | MANY_TO_ONE to `person` |
 | `contacts` | RELATION | ONE_TO_MANY to `dealContact` |
@@ -72,6 +75,8 @@ Every object also gets `noteTargets`, `taskTargets`, `attachments`, and
 | `startDate` | DATE | |
 | `endDate` | DATE | Optional, so set `isNullable` |
 | `billingType` | SELECT | Recurring, Singular |
+| `status` | SELECT | Planned, Active, On Hold, Completed, Cancelled |
+| `annualizedValue` | CURRENCY | Derived from `billingType` and `value`; do not edit manually |
 
 A company can have many projects. The `company` field is MANY_TO_ONE, and its inverse
 `projects` on Company is ONE_TO_MANY.
@@ -91,9 +96,9 @@ no formula or rollup option; every `value` field is a plain number someone types
 - Project's `value` keeps the plain Value label, and its unit depends on `billingType`:
   for a recurring project it is the monthly retainer amount actually billed, and for a
   singular project it is the total one-time contract amount. A dashboard that sums
-  Project `value` across both billing types must annualize the recurring rows first
-  (`value × 12`); this app has no field or logic function that does that automatically,
-  so it has to happen in the report or dashboard widget that consumes the data.
+  Project `value` across both billing types uses the derived `annualizedValue`
+  field. For recurring Projects, it equals `value × 12`; for singular Projects,
+  it equals `value`. The derived field preserves the source currency code.
 
 A deal that is won often becomes two projects rather than one, so that each has the
 `billingType` and `value` unit that matches how it is actually billed: a Singular

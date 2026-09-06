@@ -13,14 +13,16 @@ junction pattern behind `dealContact` and `projectContact`, see
 - Description: ThinkBreak's personal organizational CRM, and a showcase of
   the Twenty platform for potential clients.
 
-`src/default-role.ts` defines the app's default role. It can read, update,
-and soft-delete every object's records. It cannot hard-delete any record.
+`src/default-role.ts` defines the app's default role. It can read Project
+`billingType` and `value`, read Deal `stage`, and update Project
+`annualizedValue` and Deal `probability`. It cannot create, delete, destroy,
+restore, or soft-delete records.
 
 ## Objects
 
 ### Company (standard object)
 
-`src/fields/company-*.ts` adds five fields to the standard Company object:
+`src/fields/company-*.ts` adds four fields to the standard Company object:
 
 | Field | Type | Notes |
 | --- | --- | --- |
@@ -31,7 +33,7 @@ and soft-delete every object's records. It cannot hard-delete any record.
 
 ### Person (standard object)
 
-`src/fields/person-*.ts` adds six fields to the standard Person object:
+`src/fields/person-*.ts` adds five fields to the standard Person object:
 
 | Field | Type | Notes |
 | --- | --- | --- |
@@ -53,6 +55,9 @@ fields beyond `name`:
 | `dealType` | SELECT | New Business, Expansion, Renewal |
 | `billingType` | SELECT | Recurring, Singular |
 | `value` | CURRENCY | Labelled Est. Annual Value; always a normalized annual estimate, regardless of `billingType` |
+| `probability` | NUMBER | Derived from `stage`: 10, 20, 30, 50, 75, 100, or 0 |
+| `leadSource` | SELECT | Website Form, Manual, Business Card, Other |
+| `intakeSubmissionId` | TEXT | Nullable, unique external idempotency key |
 | `company` | RELATION | Many-to-one to Company |
 | `primaryContact` | RELATION | Many-to-one to Person |
 | `contacts` | RELATION | One-to-many to `dealContact`; renders as a Person picker |
@@ -72,6 +77,8 @@ defines its fields beyond `name`:
 | `startDate` | DATE | |
 | `endDate` | DATE | Nullable |
 | `billingType` | SELECT | Recurring, Singular |
+| `status` | SELECT | Planned, Active, On Hold, Completed, Cancelled |
+| `annualizedValue` | CURRENCY | Derived from `billingType` and `value`; do not edit manually |
 
 A won deal often becomes two Project records rather than one: a Singular project for
 the one-time setup work, and a Recurring project for the ongoing retainer. Splitting
@@ -105,9 +112,16 @@ Neither view has a navigation menu item. See CLAUDE.md's Navigation menu
 items section: the maintainer adds each sidebar entry by hand in the Twenty
 UI, and sets its position and icon there.
 
+## Logic functions
+
+`src/logic-functions/update-project-annualized-value*.ts` maintains Project
+`annualizedValue` when a Project is created or its billing inputs change.
+`src/logic-functions/update-deal-probability*.ts` maintains Deal `probability`
+when a Deal is created or its stage changes. Both skip writes when the stored
+value already matches the result.
+
 ## Not defined
 
 The app package has no front component, page layout, navigation menu item,
-logic function, skill, agent, or connection provider. It has no role beyond the
-default role in `src/default-role.ts`, and no workflow that sets Company's
+skill, agent, or connection provider. It has no workflow that sets Company's
 `clientStatus` to Client. The maintainer builds that workflow in the Twenty UI.

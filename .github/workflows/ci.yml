@@ -44,9 +44,6 @@ jobs:
       - name: Lint
         run: yarn lint
 
-      - name: Typecheck
-        run: yarn typecheck
-
       - name: Unit tests
         run: yarn test:unit
 
@@ -55,3 +52,12 @@ jobs:
         env:
           TWENTY_API_URL: ${{ steps.twenty.outputs.server-url }}
           TWENTY_API_KEY: ${{ steps.twenty.outputs.api-key }}
+
+      - name: Verify generated core client fields
+        run: |
+          test -f node_modules/twenty-client-sdk/dist/core/generated/schema.ts
+          rg --quiet 'annualizedValue' node_modules/twenty-client-sdk/dist/core/generated/schema.ts
+          rg --quiet 'probability' node_modules/twenty-client-sdk/dist/core/generated/schema.ts
+
+      - name: Typecheck generated workspace schema
+        run: yarn typecheck

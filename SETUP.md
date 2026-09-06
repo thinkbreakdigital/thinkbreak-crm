@@ -36,7 +36,9 @@ Install the tools needed for static checks:
    ```
 
 Run `yarn test` in CI. Its integration setup installs the app into a temporary
-Twenty workspace and generates the workspace-specific client.
+Twenty workspace and generates the workspace-specific client. CI then confirms
+that the generated schema contains Project `annualizedValue` and Deal
+`probability` before it runs the typecheck for the packaged logic functions.
 
 ## Production deployment
 
@@ -72,12 +74,32 @@ After CD deploys the app, complete these workspace-only steps in the Twenty UI:
 These sidebar entries are intentionally not packaged. The maintainer controls
 their placement and icons in the workspace.
 
+## Derived values
+
+The app packages two derived-value handlers, each registered for create and
+relevant update events:
+
+- Project `annualizedValue` runs on `project.created` and when `billingType` or
+  `value` changes. It multiplies a recurring monthly amount by 12, keeps a
+  singular amount unchanged, and preserves the source currency code.
+- Deal `probability` runs on `deal.created` and when `stage` changes. It maps
+  Pipeline, Outreach, Appt Set, Appt Met, Quote, Won, and Lost to 10, 20, 30,
+  50, 75, 100, and 0.
+
+Both handlers read the current record before writing. They do not write when
+the stored value already matches the calculated value. An unmapped Deal stage
+stops with an error instead of writing a guessed percentage. Missing Project
+inputs clear `annualizedValue` rather than writing zero.
+
+The application role can read the source fields and update only the derived
+fields. It cannot create, delete, destroy, restore, or soft-delete records.
+
 ## Troubleshooting
 
 For a CI failure, start with the failing workflow step. The CI workflow runs lint,
-type checking, unit tests, and integration tests against a temporary workspace.
-Read the app-sync metadata plan and destroy count in that workflow's log before
-you approve a metadata change.
+unit tests, and integration tests against a temporary workspace, then verifies
+the generated client and typechecks it. Read the app-sync metadata plan and
+destroy count in that workflow's log before you approve a metadata change.
 
 For a CD failure, confirm that `TWENTY_DEPLOY_URL` is an explicit workspace URL and that
 `TWENTY_DEPLOY_API_KEY` can deploy the app. If Twenty rejects the package version,

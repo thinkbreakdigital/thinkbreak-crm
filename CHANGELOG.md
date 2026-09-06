@@ -2,6 +2,28 @@
 
 All notable changes to this application are documented in this file.
 
+## 0.1.10
+
+- Release the CI schema-check repair through the deployment pipeline.
+
+## 0.1.9
+
+- Add Project annualized-value and Deal probability logic functions.
+- Restrict the application role to the source and derived fields the functions
+  need.
+
+## 0.1.8
+
+- Remove the redundant custom `internalNotes` fields.
+
+## 0.1.7
+
+- Add Phase 3 Project, Deal, and Task fields.
+
+## 0.1.6
+
+- Remove the packaged landing page, layout, and navigation item.
+
 ## 0.1.5
 
 - Label Deal value as Est. Annual Value.

@@ -44,7 +44,7 @@ GitHub Actions deploys every push to `main` through
 [`.github/workflows/cd.yml`](.github/workflows/cd.yml). Before the first deploy,
 set these repository values in GitHub:
 
-- `SERVER_URL` repository variable. Set it to the explicit URL of the hosted
+- `TWENTY_DEPLOY_URL` repository variable. Set it to the explicit URL of the hosted
   Twenty workspace.
 - `TWENTY_DEPLOY_API_KEY` repository secret. Give the key permission to deploy
   this app.
@@ -79,7 +79,7 @@ type checking, unit tests, and integration tests against a temporary workspace.
 Read the app-sync metadata plan and destroy count in that workflow's log before
 you approve a metadata change.
 
-For a CD failure, confirm that `SERVER_URL` is an explicit workspace URL and that
+For a CD failure, confirm that `TWENTY_DEPLOY_URL` is an explicit workspace URL and that
 `TWENTY_DEPLOY_API_KEY` can deploy the app. If Twenty rejects the package version,
 increase `package.json` only when the change is deployable.
 

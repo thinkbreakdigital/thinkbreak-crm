@@ -23,8 +23,8 @@ jobs:
     steps:
       - name: Check deploy target is configured
         run: |
-          if [ -z "${{ vars.SERVER_URL }}" ]; then
-            echo "SERVER_URL is not set."
+          if [ -z "${{ vars.TWENTY_DEPLOY_URL }}" ]; then
+            echo "TWENTY_DEPLOY_URL is not set."
             echo "Set it as a repository variable under Settings > Secrets and variables > Actions > Variables."
             echo "Example: https://crm.example.com"
             exit 1
@@ -38,5 +38,5 @@ jobs:
       - name: Deploy
         uses: twentyhq/twenty/.github/actions/deploy-twenty-app@main
         with:
-          api-url: ${{ vars.SERVER_URL }}
+          api-url: ${{ vars.TWENTY_DEPLOY_URL }}
           api-key: ${{ secrets.TWENTY_DEPLOY_API_KEY }}

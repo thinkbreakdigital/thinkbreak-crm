@@ -93,7 +93,7 @@ No remotes are configured for this project, and none should be. The `twenty` CLI
 
 So never rely on a remote name. If a command must reach a workspace, pass the URL explicitly and confirm it first. Never run `yarn twenty apply` against a live workspace without being asked, and never pass `--force`.
 
-Deployment targets belong in configuration, not in tracked files. CD reads the workspace URL from the `SERVER_URL` repository variable and the key from the `TWENTY_DEPLOY_API_KEY` secret. Do not hardcode a workspace hostname anywhere in this repository.
+Deployment targets belong in configuration, not in tracked files. CD reads the workspace URL from the `TWENTY_DEPLOY_URL` repository variable and the key from the `TWENTY_DEPLOY_API_KEY` secret. Do not hardcode a workspace hostname anywhere in this repository.
 
 ## Model spec
 

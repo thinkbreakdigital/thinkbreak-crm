@@ -60,6 +60,10 @@ dashboard record exists, run the manual **Verify operational dashboard**
 workflow in GitHub Actions. It performs a read-only query and does not run on
 pushes.
 
+If the verification workflow reports that the record is absent, run the manual
+**Repair operational dashboard** workflow. It executes the packaged post-install
+hook. The hook creates or repairs only the fixed Operational dashboard record.
+
 Before you merge a deployable change, increase `package.json` by `0.0.1` in the
 same commit. Metadata, logic, roles, front components, page layouts, and shipped
 dependency changes are deployable. Documentation, comments, and tests are not.
@@ -159,5 +163,8 @@ increase `package.json` only when the change is deployable.
 For a dashboard verification failure, open the **Verify operational dashboard**
 workflow. Confirm that its target values are configured and that the app's
 Auto-upgrade setting is enabled. The workflow does not change production data.
+
+For a dashboard repair failure, read the **Repair operational dashboard**
+workflow log. It reports the post-install hook error and does not delete records.
 
 For Twenty platform issues, use the [Twenty troubleshooting guide](https://docs.twenty.com/developers/extend/apps/getting-started/troubleshooting).

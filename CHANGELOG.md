@@ -2,6 +2,10 @@
 
 All notable changes to this application are documented in this file.
 
+## 0.1.16
+
+- Add a manual workflow that runs the packaged Operational dashboard repair hook.
+
 ## 0.1.15
 
 - Replace the failed manual installation workflow with a read-only Operational

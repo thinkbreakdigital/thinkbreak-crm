@@ -129,6 +129,12 @@ the fixed dashboard record without changing production data. It reads the
 workspace URL from `TWENTY_DEPLOY_URL` and the deployment key from
 `TWENTY_DEPLOY_API_KEY`.
 
+If that record is absent, the manual
+`.github/workflows/repair-operational-dashboard.yml` workflow executes the
+packaged post-install hook. The hook touches only the fixed Dashboard record. It
+creates the record when absent or repairs its title and layout link. It does not
+delete a Dashboard record.
+
 ### Verified SDK capabilities
 
 Checked against the `twenty-sdk` and `twenty-client-sdk` 2.37.0 type declarations

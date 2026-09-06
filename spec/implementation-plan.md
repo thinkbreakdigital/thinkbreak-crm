@@ -21,8 +21,8 @@ that project only after this app is deployed and in daily use.
 ## Fixed decisions
 
 - Keep the current core object, relation, and view structure. Remove the landing
-  page and retire custom `internalNotes` fields after preserving any existing
-  values as built-in Notes.
+  page and retire custom `internalNotes` fields directly. The maintainer approved
+  removal without a data migration.
 - Keep one repository and one deployed app. Do not fork a framework copy.
 - Deploy to the maintainer's hosted Twenty workspace through CD and use the app
   there. Feature ideas come from that use.
@@ -307,6 +307,10 @@ export, and the rollback set belong to the live workspace and stay out of Git.
 
 Every object already has built-in Notes, so the Company, Person, Deal, and
 Project `internalNotes` fields go away.
+
+The maintainer approved direct removal in this development workspace. Do not
+build or run a migration runner, preserve source values, or create rollback data.
+The migration design below is superseded and retained only as historical context.
 
 Implement the migration runner under `scripts/migrations/`. Use Node's built-in
 `fetch`, `crypto`, and file APIs. Do not add a dependency for this one

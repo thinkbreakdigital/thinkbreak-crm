@@ -53,7 +53,6 @@ An app package cannot do that for you.
 | `company` | RELATION | MANY_TO_ONE to `company` |
 | `primaryContact` | RELATION | MANY_TO_ONE to `person` |
 | `contacts` | RELATION | ONE_TO_MANY to `dealContact` |
-| `internalNotes` | TEXT | |
 
 Name the type field `dealType`, not `type`. The server reserves `type` and rejects it
 with `INVALID_FIELD_INPUT`.
@@ -73,7 +72,6 @@ Every object also gets `noteTargets`, `taskTargets`, `attachments`, and
 | `startDate` | DATE | |
 | `endDate` | DATE | Optional, so set `isNullable` |
 | `billingType` | SELECT | Recurring, Singular |
-| `internalNotes` | TEXT | |
 
 A company can have many projects. The `company` field is MANY_TO_ONE, and its inverse
 `projects` on Company is ONE_TO_MANY.
@@ -144,9 +142,9 @@ marked primary. Deal and Project each carry their own `contacts` list and their 
 Define the inverse field on the other object for every relation. These relations add
 five fields to Company and six to Person:
 
-- Company gains `clientStatus`, `primaryContact`, `deals`, `projects`, `internalNotes`
+- Company gains `clientStatus`, `primaryContact`, `deals`, and `projects`
 - Person gains `primaryContactForDeals`, `primaryContactForProjects`,
-  `primaryContactForCompanies`, `dealContacts`, `projectContacts`, `internalNotes`
+  `primaryContactForCompanies`, `dealContacts`, and `projectContacts`
 
 `clientStatus` is a SELECT with Prospect, Client, and Former Client. A workflow sets it
 to Client when a deal reaches Won.

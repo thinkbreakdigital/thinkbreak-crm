@@ -28,7 +28,6 @@ and soft-delete every object's records. It cannot hard-delete any record.
 | `primaryContact` | RELATION | Many-to-one to Person |
 | `deals` | RELATION | One-to-many, inverse of Deal's `company` field |
 | `projects` | RELATION | One-to-many, inverse of Project's `company` field |
-| `internalNotes` | TEXT | |
 
 ### Person (standard object)
 
@@ -41,7 +40,6 @@ and soft-delete every object's records. It cannot hard-delete any record.
 | `primaryContactForCompanies` | RELATION | One-to-many, inverse of Company's `primaryContact` field |
 | `dealContacts` | RELATION | One-to-many, inverse of `dealContact`'s `person` field |
 | `projectContacts` | RELATION | One-to-many, inverse of `projectContact`'s `person` field |
-| `internalNotes` | TEXT | |
 
 ### Deal (custom object)
 
@@ -58,7 +56,6 @@ fields beyond `name`:
 | `company` | RELATION | Many-to-one to Company |
 | `primaryContact` | RELATION | Many-to-one to Person |
 | `contacts` | RELATION | One-to-many to `dealContact`; renders as a Person picker |
-| `internalNotes` | TEXT | |
 
 ### Project (custom object)
 
@@ -75,7 +72,6 @@ defines its fields beyond `name`:
 | `startDate` | DATE | |
 | `endDate` | DATE | Nullable |
 | `billingType` | SELECT | Recurring, Singular |
-| `internalNotes` | TEXT | |
 
 A won deal often becomes two Project records rather than one: a Singular project for
 the one-time setup work, and a Recurring project for the ongoing retainer. Splitting

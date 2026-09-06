@@ -2,6 +2,10 @@
 
 All notable changes to this application are documented in this file.
 
+## 0.1.11
+
+- Add the follow-up workflow instructions and intake API contract.
+
 ## 0.1.10
 
 - Release the CI schema-check repair through the deployment pipeline.

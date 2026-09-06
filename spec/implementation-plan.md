@@ -690,164 +690,86 @@ screenshots.
 
 ## Phase 5: Package native Twenty reporting
 
-Numbers are tiles, comparisons are bars, and records are tables. Match the
-widget to the job the reader has, rather than rendering every metric the same
-way.
+The installed `twenty-sdk` 2.37.0 exposes `RECORD_TABLE`, but it does not expose
+`AGGREGATE_CHART` or `BAR_CHART` in `WidgetType`. A chart configuration type
+exists in the declarations, but a page-layout widget cannot use it. Do not
+declare unsupported widget values or work around the enum with a cast.
 
-`WidgetType` in twenty-sdk 2.37.0 has 23 members, not the four this plan once
-listed. `FORM_FIELD` is not among them. The types this dashboard uses are
-`AGGREGATE_CHART`, `BAR_CHART`, and `RECORD_TABLE`. Verified configuration
-shapes:
+Use `RECORD_TABLE` widgets only. They are worklists, not aggregate reports. A
+table can display records that need attention, but it cannot provide a reliable
+headline total because its `recordLimit` truncates the result set.
 
-- `AggregateChartConfiguration` is `BaseChartConfiguration` plus `label`,
-  `numberFormat`, `prefix`, and `suffix`. `BaseChartConfiguration` carries
-  `aggregateFieldMetadataId`, `aggregateOperation`, and its own `filter`, so a
-  stat tile needs no saved view behind it.
-- `AggregateOperations` includes `SUM`, `COUNT`, `AVG`, and
-  `COUNT_UNIQUE_VALUES`.
-- `ChartFilter` is `{ recordFilters, recordFilterGroups }`, so a tile's filter is
-  packaged rather than clicked.
-- `RecordTableConfiguration` takes `viewId` and `recordLimit`. In a manifest,
-  `FormatRecordSerializedRelationProperties` renames that key, so a packaged
-  widget writes `viewUniversalIdentifier`.
-- `ViewFieldManifest` accepts `aggregateOperation`, and `ViewManifest` accepts
-  `filters`, `filterGroups`, `kanbanAggregateOperation`, and
-  `kanbanAggregateOperationFieldMetadataUniversalIdentifier`.
-- `ViewFilterOperand` includes `IS_RELATIVE`, `IS_IN_PAST`, `IS_EMPTY`, and
-  `IS_NOT_EMPTY`. `ViewFilterGroupLogicalOperator` includes `OR`. Relative dates
-  and missing-value filters are therefore packageable.
+The installed enum also exposes `VIEW`, `IFRAME`, `FIELD`, `FIELDS`, `GRAPH`,
+`STANDALONE_RICH_TEXT`, `TIMELINE`, `TASKS`, `NOTES`, `FILES`, `EMAILS`,
+`CALENDAR`, `FIELD_RICH_TEXT`, `WORKFLOW`, `WORKFLOW_VERSION`,
+`WORKFLOW_RUN`, `FRONT_COMPONENT`, `EMAIL_THREAD`,
+`CALL_RECORDING_SUMMARY`, `CALL_RECORDING_TRANSCRIPT`,
+`MESSAGE_CAMPAIGN_BODY`, and `MESSAGE_CAMPAIGN_DETAILS`. None has a confirmed
+native aggregate-chart configuration for a packaged dashboard. Do not use an
+iframe or front component as a substitute.
 
-Do not put a headline number in a table footer. A `RECORD_TABLE` truncates its
-rows to `recordLimit`, so a total printed under a partial list reads as the sum
-of the visible rows. `AGGREGATE_CHART` states the number plainly and filters
-itself.
+Use USD for stored-value reporting. The dashboard does not calculate or display
+revenue totals until a supported aggregate widget exists. The views still show
+the source and derived USD values for individual records.
 
-Do not build the dashboard by hand in the Twenty UI. A packaged dashboard
-survives a reinstall and reaches every environment. Someone has to rebuild a
-hand-built dashboard from `SETUP.md` every time.
+### Build the operational dashboard
 
-See the Twenty documentation for
-[page layouts](https://docs.twenty.com/developers/extend/apps/layout/page-layouts)
-and [dashboard widgets](https://docs.twenty.com/user-guide/dashboards/capabilities/widgets).
+Scaffold each view with `yarn twenty dev:add view`. Build the page layout and
+its tab with `yarn twenty dev:add pageLayout` and
+`yarn twenty dev:add pageLayoutTab`.
 
-### Define the metrics
+Define one `DASHBOARD` page layout with a `GRID` tab and five `RECORD_TABLE`
+widgets. Use a `recordLimit` of 10 for every widget.
 
-- [ ] Define Current revenue as the sum of `annualizedValue` for Active Projects.
-- [ ] Label it `Current revenue, annualized contract basis`.
-- [ ] Define Projected revenue as the sum of Deal `value` for open Deals.
-- [ ] Define Open deals as the count of Deals excluding Won and Lost.
-- [ ] Define Lead source mix as Deal count grouped by `leadSource`.
-- [ ] Define Revenue by billing type as the sum of `annualizedValue` for Active
-  Projects grouped by `billingType`.
-
-Current revenue is a contract-value metric. It is not earned revenue, cash
-received, or an accounting report. A future invoice or payment integration must
-own those definitions.
-
-A native `SUM` over a CURRENCY field adds `amountMicros` and ignores
-`currencyCode`. These metrics are correct only while the workspace uses one
-currency. Carry that assumption in the tile's `label` or `suffix` so it travels
-with the number. Revisit the metric definitions before the workspace adds a
-record in a second currency.
-
-### Build the first dashboard
-
-Scaffold each view with `yarn twenty dev:add view` and each field with
-`yarn twenty dev:add viewField`. Build the page layout and its tab with
-`yarn twenty dev:add pageLayout` and `yarn twenty dev:add pageLayoutTab`.
-
-Define one `DASHBOARD` page layout with a `GRID` tab, holding eight widgets in
-three bands.
-
-Band 1, the numbers, as `AGGREGATE_CHART` tiles. Each carries its own
-`ChartFilter`, so none of them needs a view:
-
-- [ ] Current revenue. `SUM` on Project `annualizedValue`, filtered to `status`
-  Active. Give it the largest grid position on the tab.
-- [ ] Projected revenue. `SUM` on Deal `value`, filtered to exclude Won and Lost.
-- [ ] Open deals. `COUNT` of Deals, filtered to exclude Won and Lost.
-
-Band 2, the comparisons, as horizontal `BAR_CHART` widgets:
-
-- [ ] Lead source mix. `COUNT` of Deals grouped by `leadSource`.
-- [ ] Revenue by billing type. `SUM` on `annualizedValue` for Active Projects
-  grouped by `billingType`.
-- [ ] Run both horizontally. `Website Form` and `Business Card` are long labels
-  that crowd under vertical columns.
-- [ ] Give each chart a single color. Bar length carries the comparison, these
-  categories are not identities tracked across charts, and one hue per chart
-  stays legible for colorblind readers. Do not use a pie chart for either.
-  Billing type has two categories, which a pie renders as a shape you have to
-  read twice.
-
-Band 3, the worklists, as `RECORD_TABLE` widgets over packaged views. These are
-the widgets where the rows are the point, because the reader clicks through to
-act on them:
-
-- [ ] Renewals due. One Project view filtered to `endDate` within 90 days, sorted
-  by `endDate` ascending. One view replaces the separate 30, 60, and 90 day
-  views, which showed the same projects three times. Sorting puts the soonest
-  first.
-- [ ] Overdue follow-ups. One Task view covering both the email and call Tasks.
-- [ ] Data quality. One Project view for records missing `status`, `billingType`,
+- [ ] Open Deals. A Deal view that excludes Won and Lost, sorted by update date.
+- [ ] Active Projects. A Project view filtered to status Active, sorted by
+  `annualizedValue` descending. Show the USD annualized value.
+- [ ] Renewals due. A Project view filtered to `endDate` within 90 days, sorted
+  by `endDate` ascending.
+- [ ] Overdue follow-ups. A Task view for incomplete Tasks whose due date is in
+  the past.
+- [ ] Data quality. A Project view for records missing `status`, `billingType`,
   or `value`, using `IS_EMPTY` filters in an `OR` filter group.
-- [ ] Give each widget a `recordLimit` that keeps its card readable.
-- [ ] Stop at these eight widgets. A ninth tile counting the data-quality rows
-  would restate what that table already shows.
 
 Then finish the Deals board:
 
-- [ ] Set `kanbanAggregateOperation` to `SUM` on `value` for the existing Deals
-  board in `src/views/deals-board.ts`, so each stage column shows its total.
 - [ ] Show `probability` on the Deals board.
 - [ ] Do not add a navigation menu item. The maintainer adds the sidebar entry by
   hand, as with every other object view.
 
-### Add later metric candidates
+### Add when Twenty supports aggregates
 
-Do not add these until the required history exists:
+Do not add these until `WidgetType` exposes a supported aggregate or chart
+widget and CI accepts the metadata:
 
-- Weighted projected revenue.
-- Deal win rate.
-- Average Deal value.
-- Average time in each Deal stage.
-- Lead-source conversion rate.
-- Revenue won by lead source.
-- Automated-intake response time.
-- Projects near completion with no follow-on Deal.
+- Current revenue, as the USD sum of `annualizedValue` for Active Projects.
+- Projected revenue, as the USD sum of Deal `value` for open Deals.
+- Open Deals count.
+- Lead source mix.
+- Revenue by billing type.
+- Deal board column totals.
 
 ### Acceptance criteria
 
-- [ ] Every first-release metric appears on the dashboard.
-- [ ] Each widget type appears in the `WidgetType` enum of the installed SDK.
-- [ ] Every headline number is an `AGGREGATE_CHART` tile, not a table footer.
-- [ ] The whole dashboard is packaged metadata. `SETUP.md` documents no manual
-  widget building, only the sidebar entry.
-- [ ] The Current revenue tile equals `Recurring value * 12 + Singular value`
-  for Active Projects.
-- [ ] View filters exclude Won and Lost Deals from open pipeline metrics.
-- [ ] The Deal board displays the stage-derived `probability` without calculating
-  a weighted value.
-- [ ] Data-quality views expose Projects omitted from derived-value totals.
+- [ ] All five worklists appear on the packaged dashboard.
+- [ ] Every dashboard widget uses a value in the installed `WidgetType` enum.
+- [ ] Every widget uses a packaged view and a `recordLimit` of 10.
+- [ ] The dashboard does not show a table footer as a revenue or count metric.
+- [ ] The Active Projects view displays each record's USD `annualizedValue`.
+- [ ] The Open Deals view excludes Won and Lost Deals.
+- [ ] The Deals board displays the stage-derived `probability`.
+- [ ] The Data quality view exposes Projects missing fields needed for revenue
+  reporting.
 
 ### Verification
 
-- [ ] Prepare a small fixture set with known Project and Deal values. Include one
-  Project missing `billingType`, so the data-quality view has something to catch.
-- [ ] Calculate the expected metric values outside Twenty.
-- [ ] Confirm that `annualizedValue` holds values before you read Current revenue.
-  An unfinished backfill produces a wrong total instead of an error.
-- [ ] Confirm in CI that the destroy count is zero before the views and the page
-  layout reach a live workspace.
-- [ ] Let the maintainer inspect the applied dashboard and compare each tile,
-  bar, and table against the expected value.
-- [ ] Quote no number from a table footer or a kanban column total. Every number
-  anyone reports comes from an `AGGREGATE_CHART` tile, which carries its own
-  filter and no row limit. That rule settles the footer-scope question instead
-  of waiting on an answer to it.
-- [ ] Have the maintainer compare the Deals board column totals against the
-  Projected revenue tile once. If a column sums only loaded rows, record the
-  board totals as indicative in `SETUP.md` and leave them as a working aid.
+- [ ] Prepare a small fixture set with open and terminal Deals, Active Projects,
+  a renewal due within 90 days, an overdue Task, and a Project missing a billing
+  input.
+- [ ] Confirm in CI that the destroy count is zero before the views and page
+  layout reach the hosted workspace.
+- [ ] Let the maintainer inspect the applied dashboard and verify each worklist.
+- [ ] Confirm that no widget uses an unsupported chart or aggregate type.
 - [ ] Do not use browser automation, screenshots, or end-to-end UI tests.
 
 ## Phase 6: Deploy the app and build on it

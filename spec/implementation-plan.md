@@ -57,7 +57,7 @@ that project only after this app is deployed and in daily use.
 - Use a stock workflow branch to create a call task when that Person has a phone
   number.
 - Link both tasks only to the Person.
-- Make both tasks due on the next business day.
+- Make both tasks due exactly 48 hours after creation.
 - Keep intake manual by default. Document the API contract so a website or an
   automation service can connect later with a role-scoped API key.
 - Do not ship or assume an external automation platform or an app-owned webhook
@@ -189,13 +189,14 @@ Two places hold configuration, and the split matters in every phase:
 - **The repository** owns objects, fields, relations, views, page layouts, logic
   functions, roles, migration tooling, tests, and documentation. CD deploys it.
 - **Workspace configuration** means settings created in the Twenty UI: sidebar
-  entries, workflow assignees, API keys, and the business timezone. These are
+  entries, workflow steps, and API keys. These are
   not packaged app entities, so a reinstall does not restore them. Anything that
   lives only here must also be written down in `SETUP.md`.
 
-One business choice still blocks work. The Person follow-up workflow cannot be
-configured or verified until the default assignee and the business timezone are
-chosen. Everything else in Phases 3 through 5 can start now.
+No assignee or timezone decision blocks the Person follow-up workflow. It assigns
+each Task to the workspace member who created the triggering Person and sets the
+due date to 48 hours after the Task is created. API-intake Task assignment is
+deferred to the future intake automation design.
 
 ## Phase 1: Make the documentation reliable
 
@@ -530,8 +531,9 @@ Keep record intake manual by default. The app supplies the fields and rules an
 optional integration needs. It supplies no webhook, website adapter, or
 automation-platform blueprint.
 
-The integration contract can be written now. The Person workflow waits for an
-approved assignee and business timezone.
+The integration contract can be written now. The Person workflow uses the
+workspace member who created the triggering Person and needs no timezone
+configuration.
 
 ### Configure the Person follow-up workflow
 
@@ -540,15 +542,20 @@ that listens only for `person.created` can run before an email address or phone
 number exists. Use `Record is Created or Updated`. Watch `emails` and `phones`.
 The maintainer configures this workflow in the Twenty UI.
 
-This one stays in the UI, unlike the Deal probability function. It needs an
-assignee, which is a workspace member ID rather than a rule, and it needs the
-business timezone. Both belong to the workspace, not to source. `SETUP.md`
-carries the steps.
+This one stays in the UI, unlike the Deal probability function. In the Create
+Task action, set `assigneeId` from the triggering Person's
+`createdBy.workspaceMemberId`. Do not use `updatedBy`, because a later editor
+must not take ownership of the follow-up. Set the due date to the Task creation
+time plus 48 hours. This duration does not need a business timezone.
+
+If `createdBy.workspaceMemberId` is empty, do not assign a Task by guessing.
+Stop the workflow for manual review. This protects automated and API-created
+People, whose Task assignment policy is deferred to their intake automation.
 
 - [ ] Document the workflow setup in `SETUP.md`. Full workflows are workspace
   configuration and are not packaged app entities.
-- [ ] Add one Code action that returns both Task keys and the next-business-day
-  due date.
+- [ ] Add one Code action that returns both Task keys and a due date 48 hours
+  after Task creation.
 - [ ] Add an email-task branch that runs when the Person has a primary email.
 - [ ] Upsert the email Task by `automationKey` using
   `<person-id>:new-person-email`.
@@ -557,15 +564,15 @@ carries the steps.
 - [ ] Upsert the call Task by `automationKey` using
   `<person-id>:new-person-call`.
 - [ ] Link each Task only to the Person that triggered the workflow.
-- [ ] Assign both Tasks to the workspace member selected during setup.
-- [ ] Make each Task due on the next business day in the workspace's configured
-  business timezone.
-- [ ] Skip Saturdays and Sundays. Do not add a holiday calendar in the first
-  release.
+- [ ] Assign both Tasks to the triggering Person's
+  `createdBy.workspaceMemberId`.
+- [ ] Stop for manual review when the triggering Person has no creator workspace
+  member.
+- [ ] Make each Task due exactly 48 hours after it is created.
 - [ ] Do not send an email or place a call. The workflow creates Tasks only.
 
 Both branches use stock record triggers, filters, Code, and Task upserts. The
-Code action constructs `automationKey` and the next-business-day due date.
+Code action constructs `automationKey` and the 48-hour due date.
 
 ### Write the optional integration contract
 
@@ -579,6 +586,8 @@ Code action constructs `automationKey` and the next-business-day due date.
 - [ ] Require a stable `intakeSubmissionId` for every automated Deal intake.
 - [ ] Define Person, Company, Deal, contact-junction, and optional Note mappings.
 - [ ] Define every stop, retry, and manual-review outcome.
+- [ ] Leave Task assignment for API-created People to the intake automation that
+  creates them. Do not prescribe it in this contract.
 
 ### Keep external writes safe to retry
 
@@ -666,7 +675,8 @@ screenshots.
 - [ ] Test repeated Person updates.
 - [ ] Test a failure after one Task upsert succeeds but before the other branch
   finishes.
-- [ ] Test Friday intake dates and weekend skipping.
+- [ ] Confirm that each Task is due exactly 48 hours after creation, including
+  across weekends.
 
 #### Field and integration checks
 
@@ -921,10 +931,9 @@ Before Phase 3 Task metadata:
 - [ ] Fallback idempotency method if Task cannot accept `automationKey`.
 - [ ] Whether Manual is the default Lead Source or remains an explicit selection.
 
-Before Phase 4 Person workflow configuration:
+Before API-intake Task automation:
 
-- [ ] Default assignee for new-Person follow-up Tasks.
-- [ ] Business timezone for next-business-day calculations.
+- [ ] Decide the Task assignment policy for API-created People.
 
 ## Recorded decisions
 

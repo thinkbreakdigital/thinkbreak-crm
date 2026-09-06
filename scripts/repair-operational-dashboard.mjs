@@ -14,7 +14,7 @@ if (!API_KEY) {
   throw new Error('TWENTY_API_KEY is not set.');
 }
 
-const requestGraphql = async (path, query) => {
+const requestGraphql = async (path, query, { allowNotFound = false } = {}) => {
   const response = await fetch(`${API_URL}${path}`, {
     method: 'POST',
     headers: {
@@ -33,8 +33,19 @@ const requestGraphql = async (path, query) => {
     throw new Error(`${path} returned HTTP ${response.status} with invalid JSON.`);
   }
 
-  if (!response.ok || result.errors?.length) {
-    const details = result.errors
+  const errors = result.errors ?? [];
+
+  if (
+    allowNotFound &&
+    response.ok &&
+    errors.length > 0 &&
+    errors.every((error) => error.extensions?.code === 'NOT_FOUND')
+  ) {
+    return null;
+  }
+
+  if (!response.ok || errors.length > 0) {
+    const details = errors
       ?.map((error) => {
         const code = error.extensions?.code;
         return code ? `${code}: ${error.message}` : error.message;
@@ -77,8 +88,9 @@ const core = await requestGraphql(
       title
     }
   }`,
+  { allowNotFound: true },
 );
-const dashboard = core.dashboard;
+const dashboard = core?.dashboard;
 
 if (!dashboard) {
   await requestGraphql(

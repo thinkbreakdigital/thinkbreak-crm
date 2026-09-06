@@ -2,6 +2,10 @@
 
 All notable changes to this application are documented in this file.
 
+## 0.1.18
+
+- Treat Twenty's `NOT_FOUND` Dashboard response as an absent record during repair.
+
 ## 0.1.17
 
 - Repair the Operational dashboard through narrow metadata and record queries.

@@ -718,14 +718,12 @@ Scaffold each view with `yarn twenty dev:add view`. Build the page layout and
 its tab with `yarn twenty dev:add pageLayout` and
 `yarn twenty dev:add pageLayoutTab`.
 
-Define one `DASHBOARD` page layout with a `GRID` tab and five `RECORD_TABLE`
+Define one `DASHBOARD` page layout with a `GRID` tab and four `RECORD_TABLE`
 widgets. Use a `recordLimit` of 10 for every widget.
 
 - [ ] Open Deals. A Deal view that excludes Won and Lost, sorted by update date.
 - [ ] Active Projects. A Project view filtered to status Active, sorted by
   `annualizedValue` descending. Show the USD annualized value.
-- [ ] Renewals due. A Project view filtered to `endDate` within 90 days, sorted
-  by `endDate` ascending.
 - [ ] Overdue follow-ups. A Task view for incomplete Tasks whose due date is in
   the past.
 - [ ] Data quality. A Project view for records missing `status`, `billingType`,
@@ -751,7 +749,7 @@ widget and CI accepts the metadata:
 
 ### Acceptance criteria
 
-- [ ] All five worklists appear on the packaged dashboard.
+- [ ] All four worklists appear on the packaged dashboard.
 - [ ] Every dashboard widget uses a value in the installed `WidgetType` enum.
 - [ ] Every widget uses a packaged view and a `recordLimit` of 10.
 - [ ] The dashboard does not show a table footer as a revenue or count metric.
@@ -764,8 +762,7 @@ widget and CI accepts the metadata:
 ### Verification
 
 - [ ] Prepare a small fixture set with open and terminal Deals, Active Projects,
-  a renewal due within 90 days, an overdue Task, and a Project missing a billing
-  input.
+  an overdue Task, and a Project missing a billing input.
 - [ ] Confirm in CI that the destroy count is zero before the views and page
   layout reach the hosted workspace.
 - [ ] Let the maintainer inspect the applied dashboard and verify each worklist.

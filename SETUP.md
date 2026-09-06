@@ -74,6 +74,29 @@ After CD deploys the app, complete these workspace-only steps in the Twenty UI:
 These sidebar entries are intentionally not packaged. The maintainer controls
 their placement and icons in the workspace.
 
+## Person follow-up workflow
+
+Configure this workflow in the Twenty UI. Do not add it to the app package.
+
+1. Create an inactive workflow on Person for records that are created or
+   updated. Watch `emails` and `phones`.
+2. Add a Code action that returns the email and call `automationKey` values and
+   a due date 48 hours after the Task creation time.
+3. Add an email branch that runs only when `emails.primaryEmail` is present.
+   Upsert a Task using `<person-id>:new-person-email` as `automationKey`.
+4. Add a call branch that runs only when `phones.primaryPhoneNumber` is present.
+   Upsert a Task using `<person-id>:new-person-call` as `automationKey`.
+5. Link each Task only to the Person that triggered the workflow.
+6. Set each Task `assigneeId` to the triggering Person's
+   `createdBy.workspaceMemberId`. Do not use `updatedBy`.
+7. If `createdBy.workspaceMemberId` is empty, stop for manual review. Do not
+   create an unassigned Task or guess an assignee.
+8. Keep both Tasks inactive until their branches and retry behavior receive human
+   review. A human activates the workflow.
+
+This workflow creates Tasks only. It does not send email or place calls. API
+intake automation owns its own Task-assignment policy.
+
 ## Derived values
 
 The app packages two derived-value handlers, each registered for create and

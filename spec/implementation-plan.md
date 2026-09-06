@@ -552,7 +552,7 @@ If `createdBy.workspaceMemberId` is empty, do not assign a Task by guessing.
 Stop the workflow for manual review. This protects automated and API-created
 People, whose Task assignment policy is deferred to their intake automation.
 
-- [ ] Document the workflow setup in `SETUP.md`. Full workflows are workspace
+- [x] Document the workflow setup in `SETUP.md`. Full workflows are workspace
   configuration and are not packaged app entities.
 - [ ] Add one Code action that returns both Task keys and a due date 48 hours
   after Task creation.
@@ -576,17 +576,17 @@ Code action constructs `automationKey` and the 48-hour due date.
 
 ### Write the optional integration contract
 
-- [ ] Add `spec/intake-contract.md`.
-- [ ] Describe integration through Twenty's generated REST or GraphQL API.
-- [ ] Document how to create an API key and assign it a least-privilege role.
-- [ ] Do not prescribe an automation platform, a website payload, or an
+- [x] Add `spec/intake-contract.md`.
+- [x] Describe integration through Twenty's generated REST or GraphQL API.
+- [x] Document how to create an API key and assign it a least-privilege role.
+- [x] Do not prescribe an automation platform, a website payload, or an
   app-owned endpoint.
-- [ ] Define required, optional, nullable, and ignored values for a generic lead
+- [x] Define required, optional, nullable, and ignored values for a generic lead
   intake.
-- [ ] Require a stable `intakeSubmissionId` for every automated Deal intake.
-- [ ] Define Person, Company, Deal, contact-junction, and optional Note mappings.
-- [ ] Define every stop, retry, and manual-review outcome.
-- [ ] Leave Task assignment for API-created People to the intake automation that
+- [x] Require a stable `intakeSubmissionId` for every automated Deal intake.
+- [x] Define Person, Company, Deal, contact-junction, and optional Note mappings.
+- [x] Define every stop, retry, and manual-review outcome.
+- [x] Leave Task assignment for API-created People to the intake automation that
   creates them. Do not prescribe it in this contract.
 
 ### Keep external writes safe to retry

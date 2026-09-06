@@ -2,6 +2,11 @@
 
 All notable changes to this application are documented in this file.
 
+## 0.1.14
+
+- Fix local typechecking for derived Deal and Project field updates.
+- Verify that the generated CI schema allows both fields in update inputs.
+
 ## 0.1.13
 
 - Add a native Dashboard-module record for the Operational dashboard.

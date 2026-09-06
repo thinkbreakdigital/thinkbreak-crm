@@ -1,10 +1,14 @@
 import { defineLogicFunction, type DatabaseEventPayload } from 'twenty-sdk/define';
-import { CoreApiClient } from 'twenty-client-sdk/core';
+import { CoreApiClient, type CoreSchema } from 'twenty-client-sdk/core';
 
 import {
   calculateAnnualizedValue,
   type CurrencyValue,
 } from 'src/logic-functions/derived-values';
+
+type ProjectAnnualizedValueUpdateInput = CoreSchema.ProjectUpdateInput & {
+  annualizedValue?: CurrencyValue | null;
+};
 
 const hasSameCurrencyValue = (
   left: CurrencyValue | null,
@@ -49,9 +53,11 @@ export const updateProjectAnnualizedValue = async (
     return;
   }
 
+  const data: ProjectAnnualizedValueUpdateInput = { annualizedValue };
+
   await client.mutation({
     updateProject: {
-      __args: { id: project.id, data: { annualizedValue } },
+      __args: { id: project.id, data },
       id: true,
     },
   });

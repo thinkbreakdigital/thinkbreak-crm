@@ -30,7 +30,7 @@ transport shape, then maps it to these logical values.
 | Company domain | Optional. | Company `domainName` |
 | Company name | Optional. | Company `name` |
 | Deal name | Required. | Deal `name` |
-| Lead source | Optional. It must equal an installed option value. | Deal `leadSource` |
+| Lead source | Optional. It must equal an installed option API name. | Deal `leadSource` |
 | Deal type, billing type, value | Optional. Validate each value before writing. | The matching Deal field |
 | Free-form context | Optional. | A built-in Note linked to the Deal |
 
@@ -58,6 +58,20 @@ Perform writes in this order:
 
 When a new Deal uses the packaged default stage, omit `stage` from the create
 input. The app supplies `PIPELINE` as the default.
+
+## Lead Source API names
+
+The integration writes the Lead Source option's stored `value` to `leadSource`.
+The package defines `WEBSITE_FORM`, `MANUAL`, `BUSINESS_CARD`, and `OTHER`.
+
+Before an integration uses another value, an administrator adds the matching
+option in Twenty's data-model settings and records its API name. Do not send a
+display label in place of the API name. If the value is absent, stop for manual
+review.
+
+The repository does not yet verify that a workspace-added option survives an
+app redeploy. Complete that check before an integration depends on a custom
+Lead Source value.
 
 ## Retry and manual-review rules
 

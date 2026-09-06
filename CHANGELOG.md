@@ -2,6 +2,11 @@
 
 All notable changes to this application are documented in this file.
 
+## 0.1.12
+
+- Add the packaged operational reporting dashboard and its four worklist views.
+- Show Deal probability on the Deals board.
+
 ## 0.1.11
 
 - Add the follow-up workflow instructions and intake API contract.

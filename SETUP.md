@@ -76,6 +76,23 @@ After CD deploys the app, complete these workspace-only steps in the Twenty UI:
 These sidebar entries are intentionally not packaged. The maintainer controls
 their placement and icons in the workspace.
 
+## Lead Source options for API intake
+
+To add a Lead Source option, edit the Deal `leadSource` field in Twenty's
+standard data-model settings. Give the option a label, then record its API name.
+The API name is the option's stored `value`, not its display label.
+
+An integration writes the API name to Deal `leadSource`. The packaged option
+names are `WEBSITE_FORM`, `MANUAL`, `BUSINESS_CARD`, and `OTHER`. Before an
+integration writes a new value, an administrator adds the matching option in
+the workspace. If the option does not exist, the integration stops for manual
+review.
+
+The app package does not yet prove that a workspace-added option and records
+that use it survive a redeploy. Treat that preservation check as a release
+blocker before an integration depends on a workspace-added value. See
+[spec/intake-contract.md](spec/intake-contract.md) for the intake boundary.
+
 ## Person follow-up workflow
 
 Configure this workflow in the Twenty UI. Do not add it to the app package.

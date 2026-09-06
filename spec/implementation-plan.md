@@ -777,26 +777,26 @@ from real use rather than from this plan.
 
 ### Prepare the release
 
-- [ ] Confirm that tracked files hold no credentials, hostnames, owner IDs, or
+- [x] Confirm that tracked files hold no credentials, hostnames, owner IDs, or
   form slugs.
 - [ ] Add the Deal, Project, and dashboard sidebar entries by hand in the Twenty
   UI. Record the positions and icons in `SETUP.md`.
-- [ ] Document which workflows the maintainer configures in the UI after a
+- [x] Document which workflows the maintainer configures in the UI after a
   deploy.
-- [ ] Document how to add a Lead Source option and how an integration uses its
+- [x] Document how to add a Lead Source option and how an integration uses its
   API name.
 - [ ] Tag the reviewed version.
 
 ### Run it and learn from it
 
-- [ ] Install the reviewed version into a clean CI workspace first.
-- [ ] Deploy the same version to the hosted workspace through CD.
+- [x] Install the reviewed version into a clean CI workspace first.
+- [x] Deploy the same version to the hosted workspace through CD.
 - [ ] Confirm that the deploy removes the old landing-page component, page
   layout, and navigation item shown in the reviewed metadata plan.
 - [ ] Use the app for real work: real Deals, real Projects, real follow-up Tasks.
 - [ ] Keep a dated list of friction and missing features in
   `spec/app-features.md`, and take the next release's scope from it.
-- [ ] Keep API keys, owner IDs, and workflow assignments out of tracked files.
+- [x] Keep API keys, owner IDs, and workflow assignments out of tracked files.
 
 ### Acceptance criteria
 

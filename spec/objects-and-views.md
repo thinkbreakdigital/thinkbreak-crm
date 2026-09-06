@@ -144,15 +144,19 @@ Company already has `people`. Add `primaryContact` to Company so one of them can
 marked primary. Deal and Project each carry their own `contacts` list and their own
 `primaryContact`, so a project's contacts can differ from the full company roster.
 
-Define the inverse field on the other object for every relation. These relations add
-five fields to Company and six to Person:
+Define the inverse field on the other object for every relation. The app adds five
+fields to Company and five to Person:
 
-- Company gains `clientStatus`, `primaryContact`, `deals`, and `projects`
+- Company gains `clientStatus`, `industry`, `primaryContact`, `deals`, and `projects`
 - Person gains `primaryContactForDeals`, `primaryContactForProjects`,
   `primaryContactForCompanies`, `dealContacts`, and `projectContacts`
 
 `clientStatus` is a SELECT with Prospect, Client, and Former Client. A workflow sets it
 to Client when a deal reaches Won.
+
+`industry` is a nullable SELECT. The app packages only `Add New`; the maintainer adds
+Industry values in Twenty's data model. Confirm that a package sync preserves those
+values before using them in production.
 
 ## Add the kanban board
 

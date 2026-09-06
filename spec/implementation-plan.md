@@ -71,8 +71,8 @@ the deployed model.
 
 ### Existing objects
 
-- Company is a standard Twenty object. The app adds `clientStatus`,
-  `primaryContact`, `deals`, `projects`, and `internalNotes`.
+- Company is a standard Twenty object. The app adds `clientStatus`, `industry`,
+  `primaryContact`, `deals`, and `projects`.
 - Person is a standard Twenty object. The app adds the inverse primary-contact
   and junction relations, plus `internalNotes`.
 - Deal is a custom object. It has `stage`, `dealType`, `billingType`, `value`,
@@ -93,7 +93,10 @@ the deployed model.
 
 ### Confirmed field findings
 
-- Company already has `clientStatus` with Prospect, Client, and Former Client.
+- Company has `clientStatus` with Prospect, Client, and Former Client.
+- Company has a nullable `industry` SELECT with the packaged `Add New` option.
+  The maintainer adds Industry values through Twenty's data model. Confirm that a
+  package sync preserves those values before using them in production.
 - Deal does not have lead attribution or a win probability.
 - Deal `value` already stores an estimated annual value.
 - Project `value` stores a monthly amount for Recurring projects and a full

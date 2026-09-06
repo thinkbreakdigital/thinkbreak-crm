@@ -22,11 +22,12 @@ restore, or soft-delete records.
 
 ### Company (standard object)
 
-`src/fields/company-*.ts` adds four fields to the standard Company object:
+`src/fields/` adds five fields to the standard Company object:
 
 | Field | Type | Notes |
 | --- | --- | --- |
 | `clientStatus` | SELECT | Prospect, Client, Former Client |
+| `industry` | SELECT | Nullable. The app packages `Add New`; the maintainer manages Industry values in Twenty's data model. |
 | `primaryContact` | RELATION | Many-to-one to Person |
 | `deals` | RELATION | One-to-many, inverse of Deal's `company` field |
 | `projects` | RELATION | One-to-many, inverse of Project's `company` field |

@@ -2,6 +2,10 @@
 
 All notable changes to this application are documented in this file.
 
+## 0.1.17
+
+- Repair the Operational dashboard through narrow metadata and record queries.
+
 ## 0.1.16
 
 - Add a manual workflow that runs the packaged Operational dashboard repair hook.

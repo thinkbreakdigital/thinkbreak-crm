@@ -130,10 +130,10 @@ workspace URL from `TWENTY_DEPLOY_URL` and the deployment key from
 `TWENTY_DEPLOY_API_KEY`.
 
 If that record is absent, the manual
-`.github/workflows/repair-operational-dashboard.yml` workflow executes the
-packaged post-install hook. The hook touches only the fixed Dashboard record. It
-creates the record when absent or repairs its title and layout link. It does not
-delete a Dashboard record.
+`.github/workflows/repair-operational-dashboard.yml` workflow resolves the
+packaged page layout through the Metadata API, then touches only the fixed
+Dashboard record through the Core API. It creates the record when absent or
+repairs its title and layout link. It does not delete a Dashboard record.
 
 ### Verified SDK capabilities
 

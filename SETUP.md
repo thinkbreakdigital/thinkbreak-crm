@@ -77,7 +77,8 @@ their placement and icons in the workspace.
 Do not add a separate sidebar entry for the Operational dashboard. It belongs
 in Twenty's built-in Dashboard module. The current package defines its page
 layout, but it does not yet create the stock Dashboard record that the module
-lists. The next dashboard release must provision that record during installation.
+lists. The next dashboard release must provision that record through a supported
+Twenty API or manifest capability.
 
 ## Lead Source options for API intake
 

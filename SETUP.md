@@ -70,11 +70,14 @@ After CD deploys the app, complete these workspace-only steps in the Twenty UI:
 2. Choose its sidebar position and icon.
 3. Add a sidebar entry for the **Projects list** view on Project.
 4. Choose its sidebar position and icon.
-5. Add a sidebar entry for the **Operational dashboard** page layout.
-6. Choose its sidebar position and icon.
 
 These sidebar entries are intentionally not packaged. The maintainer controls
 their placement and icons in the workspace.
+
+Do not add a separate sidebar entry for the Operational dashboard. It belongs
+in Twenty's built-in Dashboard module. The current package defines its page
+layout, but it does not yet create the stock Dashboard record that the module
+lists. The next dashboard release must provision that record during installation.
 
 ## Lead Source options for API intake
 

@@ -721,6 +721,11 @@ its tab with `yarn twenty dev:add pageLayout` and
 Define one `DASHBOARD` page layout with a `GRID` tab and four `RECORD_TABLE`
 widgets. Use a `recordLimit` of 10 for every widget.
 
+Twenty's built-in Dashboard module lists standard Dashboard records, not page
+layouts by themselves. The app must create one Dashboard record that points to
+the packaged layout. Do not add a separate page-layout navigation item as a
+substitute.
+
 - [x] Open Deals. A Deal view that excludes Won and Lost, sorted by update date.
 - [x] Active Projects. A Project view filtered to status Active, sorted by
   `annualizedValue` descending. Show the USD annualized value.
@@ -728,12 +733,19 @@ widgets. Use a `recordLimit` of 10 for every widget.
   the past.
 - [x] Data quality. A Project view for records missing `status`, `billingType`,
   or `value`, using `IS_EMPTY` filters in an `OR` filter group.
+- [ ] Add an idempotent post-install hook that creates one Operational dashboard
+  Dashboard record and links it to this app's packaged Dashboard page layout.
+  Run it after a fresh install and on upgrades until the record exists. Use a
+  supported metadata lookup for the layout's runtime ID. Do not create a blank
+  Dashboard layout or identify the record by a display label alone.
 
 Then finish the Deals board:
 
 - [x] Show `probability` on the Deals board.
 - [x] Do not add a navigation menu item. The maintainer adds the sidebar entry by
   hand, as with every other object view.
+- [x] Do not add a page-layout navigation menu item for the Operational
+  dashboard. It belongs in Twenty's built-in Dashboard module.
 
 ### Add when Twenty supports aggregates
 
@@ -749,7 +761,8 @@ widget and CI accepts the metadata:
 
 ### Acceptance criteria
 
-- [ ] All four worklists appear on the packaged dashboard.
+- [ ] A fresh installation shows one Operational dashboard in Twenty's built-in
+  Dashboard module, with all four packaged worklists.
 - [x] Every dashboard widget uses a value in the installed `WidgetType` enum.
 - [x] Every widget uses a packaged view and a `recordLimit` of 10.
 - [x] The dashboard does not show a table footer as a revenue or count metric.
@@ -779,8 +792,10 @@ from real use rather than from this plan.
 
 - [x] Confirm that tracked files hold no credentials, hostnames, owner IDs, or
   form slugs.
-- [ ] Add the Deal, Project, and dashboard sidebar entries by hand in the Twenty
-  UI. Record the positions and icons in `SETUP.md`.
+- [ ] Add the Deal and Project sidebar entries by hand in the Twenty UI. Record
+  their positions and icons in `SETUP.md`.
+- [ ] Confirm that the Operational dashboard appears in Twenty's built-in
+  Dashboard module. Do not add a separate sidebar entry for it.
 - [x] Document which workflows the maintainer configures in the UI after a
   deploy.
 - [x] Document how to add a Lead Source option and how an integration uses its

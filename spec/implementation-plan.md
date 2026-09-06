@@ -733,11 +733,17 @@ substitute.
   the past.
 - [x] Data quality. A Project view for records missing `status`, `billingType`,
   or `value`, using `IS_EMPTY` filters in an `OR` filter group.
-- [ ] Use a supported Twenty API or manifest capability to create one
-  Operational dashboard Dashboard record and link it to this app's packaged
-  Dashboard page layout. The SDK has no `defineDashboard` entity. Do not use a
-  page-layout navigation item, create a blank Dashboard layout, or identify the
-  record by a display label alone.
+- [x] Use `MetadataApiClient.getPageLayouts` to resolve the packaged layout's
+  runtime ID, then create or repair one fixed Operational dashboard Dashboard
+  record through `CoreApiClient`. The synchronous post-install hook runs on a
+  fresh install and each app upgrade. The SDK has no `defineDashboard` entity.
+  Do not use a page-layout navigation item, create a blank Dashboard layout, or
+  identify the record by a display label alone.
+
+The hook touches one fixed Dashboard record. It creates the record when absent
+or restores its title and layout link when they change. It does not delete a
+Dashboard record. To stop future reconciliation, deploy a version without the
+hook. The Dashboard record remains until a maintainer removes it.
 
 Then finish the Deals board:
 

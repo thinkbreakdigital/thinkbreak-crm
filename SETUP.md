@@ -75,10 +75,9 @@ These sidebar entries are intentionally not packaged. The maintainer controls
 their placement and icons in the workspace.
 
 Do not add a separate sidebar entry for the Operational dashboard. It belongs
-in Twenty's built-in Dashboard module. The current package defines its page
-layout, but it does not yet create the stock Dashboard record that the module
-lists. The next dashboard release must provision that record through a supported
-Twenty API or manifest capability.
+in Twenty's built-in Dashboard module. The package creates its Dashboard record
+after installation and on each app upgrade. Do not change that record's title
+or layout manually because the next upgrade restores the packaged configuration.
 
 ## Lead Source options for API intake
 

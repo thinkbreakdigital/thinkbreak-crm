@@ -2,6 +2,10 @@
 
 All notable changes to this application are documented in this file.
 
+## 0.1.13
+
+- Add a native Dashboard-module record for the Operational dashboard.
+
 ## 0.1.12
 
 - Add the packaged operational reporting dashboard and its four worklist views.

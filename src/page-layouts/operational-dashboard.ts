@@ -5,13 +5,15 @@ import {
   WidgetType,
 } from 'twenty-sdk/define';
 
+import { OPERATIONAL_DASHBOARD_PAGE_LAYOUT_UNIVERSAL_IDENTIFIER } from 'src/constants/universal-identifiers';
+
 const OPEN_DEALS_VIEW = '48120c6b-2448-4d91-83b3-11adc82a43fa';
 const ACTIVE_PROJECTS_VIEW = '532b5e98-8ce9-46dd-9e78-53fe9f58e83b';
 const OVERDUE_FOLLOW_UPS_VIEW = 'aea51fbe-767e-4dcd-97ad-964fa510a739';
 const PROJECT_DATA_QUALITY_VIEW = 'eab1d547-2f91-4f8d-a555-3bf84d674dd9';
 
 export default definePageLayout({
-  universalIdentifier: 'e6b870c6-4f89-4b4e-9d64-8b8c91a9202a',
+  universalIdentifier: OPERATIONAL_DASHBOARD_PAGE_LAYOUT_UNIVERSAL_IDENTIFIER,
   name: 'Operational dashboard',
   type: PageLayoutType.DASHBOARD,
   tabs: [

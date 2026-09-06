@@ -123,9 +123,11 @@ from one of the packaged worklist views. The dashboard intentionally has no
 aggregate revenue or count metrics because the installed SDK does not support
 packaged aggregate widgets.
 
-The package does not yet create the standard Twenty Dashboard record that
-points to this layout. Until it does, the Operational dashboard does not appear
-in Twenty's built-in Dashboard module after installation.
+`src/logic-functions/ensure-operational-dashboard.ts` runs after installation
+and every app upgrade. It resolves this layout through Twenty's metadata API,
+then creates or repairs one fixed Dashboard record that points to the layout.
+That record appears in Twenty's built-in Dashboard module. The function does
+not delete Dashboard records.
 
 No view or page layout has a packaged navigation menu item. See CLAUDE.md's
 Navigation menu items section: the maintainer adds each sidebar entry by hand

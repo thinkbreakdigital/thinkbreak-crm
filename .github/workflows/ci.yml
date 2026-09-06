@@ -56,8 +56,8 @@ jobs:
       - name: Verify generated core client fields
         run: |
           test -f node_modules/twenty-client-sdk/dist/core/generated/schema.ts
-          rg --quiet 'annualizedValue' node_modules/twenty-client-sdk/dist/core/generated/schema.ts
-          rg --quiet 'probability' node_modules/twenty-client-sdk/dist/core/generated/schema.ts
+          grep --quiet 'annualizedValue' node_modules/twenty-client-sdk/dist/core/generated/schema.ts
+          grep --quiet 'probability' node_modules/twenty-client-sdk/dist/core/generated/schema.ts
 
       - name: Typecheck generated workspace schema
         run: yarn typecheck

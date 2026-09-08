@@ -10,7 +10,7 @@ permissions:
   contents: read
 
 env:
-  TWENTY_VERSION: '2.37.0'
+  TWENTY_VERSION: 'v2.37.0'
 
 concurrency:
   group: ci-${{ github.ref }}

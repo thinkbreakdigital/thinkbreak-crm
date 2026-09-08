@@ -31,14 +31,16 @@ Install the tools needed for static checks:
 
    ```bash
    yarn lint
-   yarn typecheck
    yarn test:unit
+   yarn twenty dev:build
    ```
 
 Run `yarn test` in CI. Its integration setup installs the app into a temporary
 Twenty workspace and generates the workspace-specific client. CI then confirms
 that the generated schema contains Project `annualizedValue` and Deal
-`probability` before it runs the typecheck for the packaged logic functions. It
+`probability` before it runs `yarn typecheck` for the packaged logic functions. A
+fresh-checkout typecheck uses fallback declarations, so it does not prove that
+workspace-specific fields exist. CI generates the workspace client first. It
 also creates an Industry record, syncs the app again, and confirms that the
 record survives. CI pins the Twenty server, SDK packages, and action source to
 2.37.0. The setup prints the metadata plan and refuses to apply any plan with a

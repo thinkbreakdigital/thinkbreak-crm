@@ -1,11 +1,7 @@
 import { defineLogicFunction, type DatabaseEventPayload } from 'twenty-sdk/define';
-import { CoreApiClient, type CoreSchema } from 'twenty-client-sdk/core';
+import { CoreApiClient } from 'twenty-client-sdk/core';
 
 import { calculateDealProbability } from 'src/logic-functions/derived-values';
-
-type DealProbabilityUpdateInput = CoreSchema.DealUpdateInput & {
-  probability?: number | null;
-};
 
 export const updateDealProbability = async (
   payload: DatabaseEventPayload,
@@ -31,11 +27,9 @@ export const updateDealProbability = async (
     return;
   }
 
-  const data: DealProbabilityUpdateInput = { probability };
-
   await client.mutation({
     updateDeal: {
-      __args: { id: deal.id, data },
+      __args: { id: deal.id, data: { probability } },
       id: true,
     },
   });

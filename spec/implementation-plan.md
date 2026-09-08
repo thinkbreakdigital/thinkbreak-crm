@@ -3,7 +3,8 @@
 - Status: Active implementation and maintainer verification
 - Owner: ThinkBreak
 - Last reviewed: 2026-09-08
-- Last verified against twenty-sdk 2.37.0: 2026-09-08
+- Pinned SDK and CI server version: 2.37.0
+- Last hosted CI verification: 2026-09-06
 
 This plan develops `thinkbreak-crm` as one app in one repository. There is no
 framework fork and no downstream copy. The app deploys to the maintainer's
@@ -165,10 +166,12 @@ in `node_modules` on 2026-09-08. Recheck after an SDK upgrade. An item marked
 unverified fits the manifest but has never reached a server. Confirm each one
 against the CI workspace before you build on it.
 
-An attempted 2.39.0 upgrade failed the fresh-clone typecheck because that
-release's fallback generated schema does not export `DealUpdateInput` or
-`ProjectUpdateInput`. Keep both SDK packages and the CI server on 2.37.0 until
-Twenty restores those fallback types or this app removes the dependency on them.
+An attempted 2.39.0 upgrade passed lint, unit tests, and manifest build. It was
+not accepted because the workspace-generated client and runtime integration
+tests were not exercised against a 2.39.0 CI instance. A fresh-checkout
+typecheck uses fallback declarations and cannot prove workspace-schema
+compatibility. Rehearse the upgrade in a throwaway 2.39.0 CI workspace before
+changing the pinned versions.
 
 - A logic function reads and writes records. `CoreApiClient` from
   `twenty-client-sdk/core` is a typed GraphQL client for the workspace. The

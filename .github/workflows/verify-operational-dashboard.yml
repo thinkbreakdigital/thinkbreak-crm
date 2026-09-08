@@ -24,6 +24,320 @@ jobs:
             exit 1
           fi
 
+      - name: Inspect deployed dashboard metadata
+        env:
+          API_URL: ${{ vars.TWENTY_DEPLOY_URL }}
+          API_KEY: ${{ secrets.TWENTY_DEPLOY_API_KEY }}
+        run: |
+          metadata_url="${API_URL%/}/metadata"
+          graphql_url="${API_URL%/}/graphql"
+          metadata_request_body="$(node -e 'process.stdout.write(JSON.stringify({query: `
+            query InspectDashboardMetadata {
+              getPageLayouts(pageLayoutType: DASHBOARD) {
+                id
+                name
+                type
+                universalIdentifier
+                applicationId
+                createdAt
+                updatedAt
+                deletedAt
+                tabs {
+                  id
+                  universalIdentifier
+                  title
+                  icon
+                  position
+                  layoutMode
+                  isActive
+                  deletedAt
+                  widgets {
+                    id
+                    applicationId
+                    universalIdentifier
+                    title
+                    type
+                    objectMetadataId
+                    createdAt
+                    updatedAt
+                    isActive
+                    deletedAt
+                    gridPosition {
+                      row
+                      column
+                      rowSpan
+                      columnSpan
+                    }
+                    position {
+                      __typename
+                      ... on PageLayoutWidgetGridPosition {
+                        layoutMode
+                        row
+                        column
+                        rowSpan
+                        columnSpan
+                      }
+                      ... on PageLayoutWidgetVerticalListPosition {
+                        layoutMode
+                        index
+                      }
+                      ... on PageLayoutWidgetCanvasPosition {
+                        layoutMode
+                      }
+                    }
+                    configuration {
+                      __typename
+                      ... on RecordTableConfiguration {
+                        configurationType
+                        viewId
+                        recordLimit
+                      }
+                      ... on AggregateChartConfiguration {
+                        configurationType
+                        aggregateFieldMetadataId
+                        aggregateOperation
+                        label
+                        displayDataLabel
+                        numberFormat
+                        description
+                        filter
+                        prefix
+                        suffix
+                      }
+                      ... on BarChartConfiguration {
+                        configurationType
+                        aggregateFieldMetadataId
+                        aggregateOperation
+                        primaryAxisGroupByFieldMetadataId
+                        primaryAxisGroupBySubFieldName
+                        primaryAxisDateGranularity
+                        primaryAxisOrderBy
+                        primaryAxisManualSortOrder
+                        secondaryAxisGroupByFieldMetadataId
+                        secondaryAxisGroupBySubFieldName
+                        secondaryAxisGroupByDateGranularity
+                        secondaryAxisOrderBy
+                        secondaryAxisManualSortOrder
+                        omitNullValues
+                        axisNameDisplay
+                        displayDataLabel
+                        displayLegend
+                        numberFormat
+                        rangeMin
+                        rangeMax
+                        color
+                        description
+                        filter
+                        groupMode
+                        layout
+                        isCumulative
+                        splitMultiValueFields
+                      }
+                      ... on LineChartConfiguration {
+                        configurationType
+                        aggregateFieldMetadataId
+                        aggregateOperation
+                        primaryAxisGroupByFieldMetadataId
+                        primaryAxisGroupBySubFieldName
+                        primaryAxisDateGranularity
+                        primaryAxisOrderBy
+                        primaryAxisManualSortOrder
+                        secondaryAxisGroupByFieldMetadataId
+                        secondaryAxisGroupBySubFieldName
+                        secondaryAxisGroupByDateGranularity
+                        secondaryAxisOrderBy
+                        secondaryAxisManualSortOrder
+                        omitNullValues
+                        axisNameDisplay
+                        displayDataLabel
+                        displayLegend
+                        numberFormat
+                        rangeMin
+                        rangeMax
+                        color
+                        description
+                        filter
+                        isStacked
+                        isCumulative
+                        splitMultiValueFields
+                      }
+                      ... on PieChartConfiguration {
+                        configurationType
+                        groupByFieldMetadataId
+                        aggregateFieldMetadataId
+                        aggregateOperation
+                        groupBySubFieldName
+                        dateGranularity
+                        orderBy
+                        manualSortOrder
+                        displayDataLabel
+                        showCenterMetric
+                        displayLegend
+                        numberFormat
+                        hideEmptyCategory
+                        splitMultiValueFields
+                        color
+                        description
+                        filter
+                      }
+                    }
+                  }
+                }
+              }
+              getViews {
+                id
+                universalIdentifier
+                applicationId
+                name
+                objectMetadataId
+                type
+                isCustom
+                isActive
+                deletedAt
+                viewFilters {
+                  id
+                  fieldMetadataId
+                  operand
+                  value
+                  subFieldName
+                  viewFilterGroupId
+                  positionInViewFilterGroup
+                  relationTargetFieldMetadataId
+                }
+                viewSorts {
+                  id
+                  fieldMetadataId
+                  direction
+                  subFieldName
+                }
+                viewGroups {
+                  id
+                  fieldValue
+                  position
+                  isVisible
+                }
+              }
+              objects(paging: { first: 100 }, filter: {}) {
+                edges {
+                  node {
+                    id
+                    universalIdentifier
+                    nameSingular
+                    labelSingular
+                    fieldsList {
+                      id
+                      universalIdentifier
+                      name
+                      label
+                      type
+                      options
+                    }
+                  }
+                }
+              }
+            }
+          `}));')"
+          core_request_body="$(node -e 'process.stdout.write(JSON.stringify({query: `
+            query InspectDashboards {
+              dashboards {
+                edges {
+                  node {
+                    id
+                    title
+                    pageLayoutId
+                    position
+                    createdAt
+                    updatedAt
+                  }
+                }
+              }
+            }
+          `}));')"
+          metadata_response="$(curl --fail-with-body --silent --show-error \
+            --header "Authorization: Bearer $API_KEY" \
+            --header 'Content-Type: application/json' \
+            --data "$metadata_request_body" \
+            "$metadata_url")"
+          core_response="$(curl --fail-with-body --silent --show-error \
+            --header "Authorization: Bearer $API_KEY" \
+            --header 'Content-Type: application/json' \
+            --data "$core_request_body" \
+            "$graphql_url")"
+          node - "$metadata_response" "$core_response" <<'NODE'
+            const parseResponse = (label, rawResponse) => {
+              const response = JSON.parse(rawResponse);
+
+              if (response.errors?.length) {
+                throw new Error(`${label}: ${response.errors.map((error) => error.message).join('; ')}`);
+              }
+
+              return response.data;
+            };
+
+            const metadata = parseResponse('Metadata API', process.argv[2]);
+            const core = parseResponse('Core API', process.argv[3]);
+            const dashboards = core.dashboards.edges.map(({ node }) => node);
+            const objects = metadata.objects.edges.map(({ node }) => node);
+            const objectById = new Map(objects.map((object) => [object.id, object]));
+            const fieldById = new Map(
+              objects.flatMap((object) =>
+                object.fieldsList.map((field) => [field.id, { ...field, object: object.nameSingular }]),
+              ),
+            );
+            const viewById = new Map(metadata.getViews.map((view) => [view.id, view]));
+            const resolveField = (id) => id ? fieldById.get(id) ?? { id } : null;
+            const resolvedViews = metadata.getViews.map((view) => ({
+              ...view,
+              object: objectById.get(view.objectMetadataId)?.nameSingular ?? view.objectMetadataId,
+              viewFilters: view.viewFilters.map((filter) => ({
+                ...filter,
+                field: resolveField(filter.fieldMetadataId),
+              })),
+              viewSorts: view.viewSorts.map((sort) => ({
+                ...sort,
+                field: resolveField(sort.fieldMetadataId),
+              })),
+            }));
+            const layouts = metadata.getPageLayouts.map((layout) => ({
+              ...layout,
+              tabs: layout.tabs.map((tab) => ({
+                ...tab,
+                widgets: tab.widgets.map((widget) => {
+                  const configuration = widget.configuration;
+                  const view = configuration?.viewId ? viewById.get(configuration.viewId) : null;
+
+                  return {
+                    ...widget,
+                    object: objectById.get(widget.objectMetadataId)?.nameSingular ?? widget.objectMetadataId,
+                    configuration: configuration
+                      ? {
+                          ...configuration,
+                          view: view
+                            ? {
+                                id: view.id,
+                                universalIdentifier: view.universalIdentifier,
+                                name: view.name,
+                                objectMetadataId: view.objectMetadataId,
+                              }
+                            : null,
+                          aggregateField: resolveField(configuration.aggregateFieldMetadataId),
+                          primaryAxisGroupByField: resolveField(
+                            configuration.primaryAxisGroupByFieldMetadataId,
+                          ),
+                          secondaryAxisGroupByField: resolveField(
+                            configuration.secondaryAxisGroupByFieldMetadataId,
+                          ),
+                          groupByField: resolveField(configuration.groupByFieldMetadataId),
+                        }
+                      : null,
+                  };
+                }),
+              })),
+            }));
+
+            console.log(JSON.stringify({ dashboards, layouts, views: resolvedViews }, null, 2));
+          NODE
+
       - name: Verify Operational dashboard metadata and record
         env:
           API_URL: ${{ vars.TWENTY_DEPLOY_URL }}

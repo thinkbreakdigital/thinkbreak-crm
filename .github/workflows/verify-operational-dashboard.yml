@@ -253,17 +253,23 @@ jobs:
               }
             }
           `}));')"
-          metadata_response="$(curl --fail-with-body --silent --show-error \
+          metadata_response_file="$RUNNER_TEMP/dashboard-metadata-response.json"
+          core_response_file="$RUNNER_TEMP/dashboard-core-response.json"
+          curl --fail-with-body --silent --show-error \
             --header "Authorization: Bearer $API_KEY" \
             --header 'Content-Type: application/json' \
             --data "$metadata_request_body" \
-            "$metadata_url")"
-          core_response="$(curl --fail-with-body --silent --show-error \
+            --output "$metadata_response_file" \
+            "$metadata_url"
+          curl --fail-with-body --silent --show-error \
             --header "Authorization: Bearer $API_KEY" \
             --header 'Content-Type: application/json' \
             --data "$core_request_body" \
-            "$graphql_url")"
-          node - "$metadata_response" "$core_response" <<'NODE'
+            --output "$core_response_file" \
+            "$graphql_url"
+          node - "$metadata_response_file" "$core_response_file" <<'NODE'
+            const fs = require('node:fs');
+
             const parseResponse = (label, rawResponse) => {
               const response = JSON.parse(rawResponse);
 
@@ -274,8 +280,14 @@ jobs:
               return response.data;
             };
 
-            const metadata = parseResponse('Metadata API', process.argv[2]);
-            const core = parseResponse('Core API', process.argv[3]);
+            const metadata = parseResponse(
+              'Metadata API',
+              fs.readFileSync(process.argv[2], 'utf8'),
+            );
+            const core = parseResponse(
+              'Core API',
+              fs.readFileSync(process.argv[3], 'utf8'),
+            );
             const dashboards = core.dashboards.edges.map(({ node }) => node);
             const objects = metadata.objects.edges.map(({ node }) => node);
             const objectById = new Map(objects.map((object) => [object.id, object]));

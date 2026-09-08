@@ -40,13 +40,16 @@ Twenty workspace and generates the workspace-specific client. CI then confirms
 that the generated schema contains Project `annualizedValue` and Deal
 `probability` before it runs the typecheck for the packaged logic functions. It
 also creates an Industry record, syncs the app again, and confirms that the
-record survives.
+record survives. CI pins the Twenty server, SDK packages, and action source to
+2.37.0. The setup prints the metadata plan and refuses to apply any plan with a
+nonzero destructive-change count.
 
 ## Production deployment
 
-GitHub Actions deploys every push to `main` through
-[`.github/workflows/cd.yml`](.github/workflows/cd.yml). Before the first deploy,
-set these repository values in GitHub:
+GitHub Actions deploys each commit that reaches `main` through
+[`.github/workflows/cd.yml`](.github/workflows/cd.yml). It does not deploy a
+pull-request head when someone adds a label. Before the first deploy, set these
+repository values in GitHub:
 
 - `TWENTY_DEPLOY_URL` repository variable. Set it to the explicit URL of the hosted
   Twenty workspace.
@@ -55,6 +58,10 @@ set these repository values in GitHub:
 
 The workflow passes both values to the Twenty deployment action. Do not put a
 workspace hostname or API key in a tracked file.
+
+This repository uses private internal deployment. Marketplace and npm
+publishing are not configured. `.github/workflows/publish.yml` records that
+decision and performs no publish action.
 
 When the app's Twenty Auto-upgrade setting is enabled, a successful CD publish
 upgrades the installed app in the background. To confirm that the Operational
@@ -138,9 +145,13 @@ blocker before an integration depends on a workspace-added value. See
 
 ## Person follow-up workflow
 
-Configure this workflow in the Twenty UI. Do not add it to the app package.
+The workflow is not configured or tested. It will write Tasks in the hosted CRM,
+so its risk tier is Moderate. Assign a named owner and complete the tests in
+Phase 4 of `spec/implementation-plan.md` before activation.
 
-1. Create an inactive workflow on Person for records that are created or
+Configure the workflow in the Twenty UI. Do not add it to the app package.
+
+1. After assigning an owner, create an inactive workflow on Person for records that are created or
    updated. Watch `emails` and `phones`.
 2. Add a Code action that returns the email and call `automationKey` values and
    a due date 48 hours after the Task creation time.
@@ -153,8 +164,8 @@ Configure this workflow in the Twenty UI. Do not add it to the app package.
    `createdBy.workspaceMemberId`. Do not use `updatedBy`.
 7. If `createdBy.workspaceMemberId` is empty, stop for manual review. Do not
    create an unassigned Task or guess an assignee.
-8. Keep both Tasks inactive until their branches and retry behavior receive human
-   review. A human activates the workflow.
+8. Keep the workflow inactive until its branches, retry behavior, and required
+   tests receive human review. A human activates the workflow.
 
 This workflow creates Tasks only. It does not send email or place calls. API
 intake automation owns its own Task-assignment policy.
@@ -184,7 +195,8 @@ fields. It cannot create, delete, destroy, restore, or soft-delete records.
 For a CI failure, start with the failing workflow step. The CI workflow runs lint,
 unit tests, and integration tests against a temporary workspace, then verifies
 the generated client and typechecks it. Read the app-sync metadata plan and
-destroy count in that workflow's log before you approve a metadata change.
+destroy count in that workflow's log. CI rejects every nonzero destructive-change
+count before applying the plan.
 
 For a CD failure, confirm that `TWENTY_DEPLOY_URL` is an explicit workspace URL and that
 `TWENTY_DEPLOY_API_KEY` can deploy the app. If Twenty rejects the package version,

@@ -24,32 +24,258 @@ jobs:
             exit 1
           fi
 
-      - name: Verify Operational dashboard record
+      - name: Verify Operational dashboard metadata and record
         env:
           API_URL: ${{ vars.TWENTY_DEPLOY_URL }}
           API_KEY: ${{ secrets.TWENTY_DEPLOY_API_KEY }}
         run: |
+          metadata_url="${API_URL%/}/metadata"
           graphql_url="${API_URL%/}/graphql"
-          request_body="$(node -e 'process.stdout.write(JSON.stringify({query: `query { dashboard(filter: { id: { eq: "9fc9c362-a362-4079-814d-268fcd9436c7" } }) { id title pageLayoutId } }`}));')"
-          response="$(curl --fail-with-body --silent --show-error \
+          metadata_request_body="$(node -e 'process.stdout.write(JSON.stringify({query: `
+            query VerifyOperationalDashboardLayout {
+              getPageLayouts(pageLayoutType: DASHBOARD) {
+                id
+                universalIdentifier
+                name
+                type
+                tabs {
+                  universalIdentifier
+                  title
+                  position
+                  layoutMode
+                  isActive
+                  deletedAt
+                  widgets {
+                    universalIdentifier
+                    title
+                    type
+                    isActive
+                    deletedAt
+                    position {
+                      __typename
+                      ... on PageLayoutWidgetGridPosition {
+                        layoutMode
+                        row
+                        column
+                        rowSpan
+                        columnSpan
+                      }
+                    }
+                    gridPosition {
+                      row
+                      column
+                      rowSpan
+                      columnSpan
+                    }
+                    configuration {
+                      __typename
+                      ... on RecordTableConfiguration {
+                        configurationType
+                        viewId
+                        recordLimit
+                      }
+                    }
+                  }
+                }
+              }
+              getViews {
+                id
+                universalIdentifier
+                name
+              }
+            }
+          `}));')"
+          metadata_response="$(curl --fail-with-body --silent --show-error \
             --header "Authorization: Bearer $API_KEY" \
             --header 'Content-Type: application/json' \
-            --data "$request_body" \
+            --data "$metadata_request_body" \
+            "$metadata_url")"
+          core_request_body="$(node -e 'process.stdout.write(JSON.stringify({query: `query { dashboard(filter: { id: { eq: "9fc9c362-a362-4079-814d-268fcd9436c7" } }) { id title pageLayoutId } }`}));')"
+          core_response="$(curl --fail-with-body --silent --show-error \
+            --header "Authorization: Bearer $API_KEY" \
+            --header 'Content-Type: application/json' \
+            --data "$core_request_body" \
             "$graphql_url")"
-          node -e '
-            const result = JSON.parse(process.argv[1]);
-            const dashboard = result.data?.dashboard;
+          node - "$metadata_response" "$core_response" <<'NODE'
+            const parseResponse = (label, rawResponse) => {
+              let response;
+
+              try {
+                response = JSON.parse(rawResponse);
+              } catch {
+                throw new Error(`${label} returned invalid JSON.`);
+              }
+
+              if (response.errors?.length) {
+                const details = response.errors
+                  .map((error) => {
+                    const code = error.extensions?.code;
+                    return code ? `${code}: ${error.message}` : error.message;
+                  })
+                  .join('; ');
+                throw new Error(`${label} returned GraphQL errors: ${details}`);
+              }
+
+              if (!response.data) {
+                throw new Error(`${label} returned no data.`);
+              }
+
+              return response.data;
+            };
+
+            const metadata = parseResponse('Twenty Metadata API', process.argv[2]);
+            const core = parseResponse('Twenty Core API', process.argv[3]);
+            const expectedLayoutUniversalIdentifier =
+              'e6b870c6-4f89-4b4e-9d64-8b8c91a9202a';
+            if (!Array.isArray(metadata.getPageLayouts)) {
+              throw new Error('Twenty Metadata API did not expose page layouts.');
+            }
+
+            const layouts = metadata.getPageLayouts.filter(
+              (candidate) =>
+                candidate.universalIdentifier === expectedLayoutUniversalIdentifier &&
+                candidate.type === 'DASHBOARD',
+            );
+
+            if (layouts.length !== 1) {
+              throw new Error(
+                `Expected one packaged Operational dashboard layout, found ${layouts.length}.`,
+              );
+            }
+
+            const layout = layouts[0];
+            if (layout.name !== 'Operational dashboard') {
+              throw new Error(`Operational dashboard layout name was ${JSON.stringify(layout.name)}.`);
+            }
+            if (!Array.isArray(layout.tabs)) {
+              throw new Error('Twenty Metadata API did not expose page layout tabs.');
+            }
+
+            const activeTabs = layout.tabs.filter(
+              (tab) => tab.isActive !== false && tab.deletedAt == null,
+            );
+            if (activeTabs.length !== 1) {
+              throw new Error(
+                `Expected one active Operational dashboard tab, found ${activeTabs.length}.`,
+              );
+            }
+
+            const tab = activeTabs[0];
+            if (
+              tab.universalIdentifier !== 'b38f26fe-d6a2-4483-9f63-1f871569072e' ||
+              tab.title !== 'Overview' ||
+              tab.position !== 0 ||
+              tab.layoutMode !== 'GRID'
+            ) {
+              throw new Error(`Operational dashboard tab metadata did not match: ${JSON.stringify(tab)}.`);
+            }
+            if (!Array.isArray(tab.widgets)) {
+              throw new Error('Twenty Metadata API did not expose page layout widgets.');
+            }
+
+            const expectedWidgets = [
+              {
+                universalIdentifier: '1b145e2f-dd15-43e5-a8a0-c388f72a92c1',
+                title: 'Open Deals',
+                viewUniversalIdentifier: '48120c6b-2448-4d91-83b3-11adc82a43fa',
+                position: { row: 0, column: 0, rowSpan: 1, columnSpan: 1 },
+              },
+              {
+                universalIdentifier: '4e9cd6d2-c687-481e-970a-cdd01f48d574',
+                title: 'Active Projects',
+                viewUniversalIdentifier: '532b5e98-8ce9-46dd-9e78-53fe9f58e83b',
+                position: { row: 0, column: 1, rowSpan: 1, columnSpan: 1 },
+              },
+              {
+                universalIdentifier: '9362c0bf-5d94-441f-9bd0-2e0f2a8de7c4',
+                title: 'Overdue follow-ups',
+                viewUniversalIdentifier: 'aea51fbe-767e-4dcd-97ad-964fa510a739',
+                position: { row: 1, column: 0, rowSpan: 1, columnSpan: 1 },
+              },
+              {
+                universalIdentifier: '35b659a8-69a3-49c2-8b44-edf8e451eb5b',
+                title: 'Data quality',
+                viewUniversalIdentifier: 'eab1d547-2f91-4f8d-a555-3bf84d674dd9',
+                position: { row: 1, column: 1, rowSpan: 1, columnSpan: 1 },
+              },
+            ];
+            const activeWidgets = tab.widgets.filter(
+              (widget) => widget.isActive !== false && widget.deletedAt == null,
+            );
+
+            if (activeWidgets.length !== expectedWidgets.length) {
+              throw new Error(
+                `Expected ${expectedWidgets.length} active Operational dashboard widgets, found ${activeWidgets.length}.`,
+              );
+            }
+
+            if (!Array.isArray(metadata.getViews)) {
+              throw new Error('Twenty Metadata API did not expose saved views.');
+            }
+
+            const viewsByUniversalIdentifier = new Map(
+              metadata.getViews.map((view) => [view.universalIdentifier, view]),
+            );
+
+            for (const expected of expectedWidgets) {
+              const widget = activeWidgets.find(
+                (candidate) => candidate.universalIdentifier === expected.universalIdentifier,
+              );
+              if (!widget) {
+                throw new Error(`Dashboard widget ${expected.title} was not found.`);
+              }
+
+              const runtimeView = viewsByUniversalIdentifier.get(expected.viewUniversalIdentifier);
+              if (!runtimeView) {
+                throw new Error(`Packaged view for ${expected.title} was not found.`);
+              }
+
+              const position = widget.position?.__typename === 'PageLayoutWidgetGridPosition'
+                ? widget.position
+                : widget.gridPosition;
+              const positionMatches =
+                position &&
+                position.row === expected.position.row &&
+                position.column === expected.position.column &&
+                position.rowSpan === expected.position.rowSpan &&
+                position.columnSpan === expected.position.columnSpan;
+              const configuration = widget.configuration;
+
+              if (
+                widget.title !== expected.title ||
+                widget.type !== 'RECORD_TABLE' ||
+                !positionMatches ||
+                configuration?.__typename !== 'RecordTableConfiguration' ||
+                configuration.configurationType !== 'RECORD_TABLE' ||
+                configuration.recordLimit !== 10 ||
+                configuration.viewId !== runtimeView.id
+              ) {
+                throw new Error(
+                  `Dashboard widget ${expected.title} metadata did not match: ${JSON.stringify(widget)}.`,
+                );
+              }
+            }
+
+            const dashboard = core.dashboard;
             if (!dashboard) {
-              throw new Error("Operational dashboard record was not found.");
+              throw new Error('Operational dashboard record was not found.');
             }
-            if (dashboard.id !== "9fc9c362-a362-4079-814d-268fcd9436c7") {
-              throw new Error("Operational dashboard record ID did not match.");
+            if (dashboard.id !== '9fc9c362-a362-4079-814d-268fcd9436c7') {
+              throw new Error('Operational dashboard record ID did not match.');
             }
-            if (dashboard.title !== "Operational dashboard") {
-              throw new Error("Operational dashboard title did not match.");
+            if (dashboard.title !== 'Operational dashboard') {
+              throw new Error('Operational dashboard title did not match.');
             }
-            if (typeof dashboard.pageLayoutId !== "string" || dashboard.pageLayoutId.length === 0) {
-              throw new Error("Operational dashboard page layout was missing.");
+            if (dashboard.pageLayoutId !== layout.id) {
+              throw new Error(
+                `Operational dashboard record points to ${JSON.stringify(dashboard.pageLayoutId)}, expected ${layout.id}.`,
+              );
             }
-            console.log(JSON.stringify(dashboard));
-          ' "$response"
+            console.log(
+              JSON.stringify({
+                dashboard,
+                layoutUniversalIdentifier: layout.universalIdentifier,
+                widgets: activeWidgets.map((widget) => widget.title),
+              }),
+            );
+          NODE

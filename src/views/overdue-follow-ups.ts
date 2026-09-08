@@ -31,7 +31,7 @@ export default defineView({
       universalIdentifier: '06c92c3c-59ff-4d82-9882-4e7186aeebaf',
       fieldMetadataUniversalIdentifier: TASK_OBJECT.fields.status.universalIdentifier,
       operand: ViewFilterOperand.IS_NOT,
-      value: 'DONE',
+      value: ['DONE'],
     },
     {
       universalIdentifier: '1873be3f-e599-4623-ad2f-aab806e4e0ac',

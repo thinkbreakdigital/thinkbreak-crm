@@ -7,7 +7,7 @@ export default defineLogicFunction({
   name: 'updateProjectAnnualizedValueOnUpdate',
   description: 'Updates Project annualized value when billing inputs change.',
   databaseEventTriggerSettings: {
-    eventName: 'c3ad642e-8d67-491c-99c2-deddbe39f173.updated',
+    eventName: 'project.updated',
     updatedFields: ['billingType', 'value'],
   },
   handler: updateProjectAnnualizedValue,

@@ -4,21 +4,16 @@ on:
   push:
     branches:
       - main
-  pull_request:
-    types: [labeled]
 
 permissions:
   contents: read
 
 concurrency:
   group: cd-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 jobs:
   deploy:
-    if: >-
-      github.event_name == 'push' ||
-      (github.event_name == 'pull_request' && github.event.label.name == 'deploy')
     runs-on: ubuntu-latest
     steps:
       - name: Check deploy target is configured
@@ -31,12 +26,10 @@ jobs:
           fi
 
       - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
 
       - name: Deploy
-        uses: twentyhq/twenty/.github/actions/deploy-twenty-app@main
+        uses: twentyhq/twenty/.github/actions/deploy-twenty-app@6da524b8903ec16a3eeea4b2e4a5fb63dbfc1c58 # twenty-sdk 2.37.0
         with:
           api-url: ${{ vars.TWENTY_DEPLOY_URL }}
           api-key: ${{ secrets.TWENTY_DEPLOY_API_KEY }}

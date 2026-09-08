@@ -53,13 +53,13 @@ export default defineView({
       universalIdentifier: '3a13d233-bc74-401f-8e53-b2e2ae6d04c9',
       fieldMetadataUniversalIdentifier: DEAL_STAGE_FIELD,
       operand: ViewFilterOperand.IS_NOT,
-      value: 'WON',
+      value: ['WON'],
     },
     {
       universalIdentifier: 'd015ee4e-d2d8-4877-b006-07622380b427',
       fieldMetadataUniversalIdentifier: DEAL_STAGE_FIELD,
       operand: ViewFilterOperand.IS_NOT,
-      value: 'LOST',
+      value: ['LOST'],
     },
   ],
   sorts: [

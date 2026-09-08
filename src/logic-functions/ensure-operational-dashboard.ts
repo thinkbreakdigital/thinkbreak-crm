@@ -34,20 +34,59 @@ const getOperationalDashboardLayoutId = async (): Promise<string> => {
   return layout.id;
 };
 
+type GraphqlErrorWithCode = {
+  extensions?: {
+    code?: unknown;
+  };
+};
+
+const isNotFoundError = (error: unknown): boolean => {
+  if (!error || typeof error !== 'object' || !('errors' in error)) {
+    return false;
+  }
+
+  const errors = (error as { errors?: unknown }).errors;
+
+  return (
+    Array.isArray(errors) &&
+    errors.length > 0 &&
+    errors.every(
+      (entry: unknown) =>
+        Boolean(entry) &&
+        typeof entry === 'object' &&
+        (entry as GraphqlErrorWithCode).extensions?.code === 'NOT_FOUND',
+    )
+  );
+};
+
 export const ensureOperationalDashboard = async (
   _payload: InstallPayload,
 ): Promise<void> => {
   const pageLayoutId = await getOperationalDashboardLayoutId();
   const coreClient = new CoreApiClient();
-  const result = await coreClient.query({
-    dashboard: {
-      __args: { filter: { id: { eq: OPERATIONAL_DASHBOARD_RECORD_ID } } },
-      id: true,
-      pageLayoutId: true,
-      title: true,
-    },
-  });
-  const dashboard = result.dashboard;
+  let dashboard:
+    | {
+        id: string;
+        pageLayoutId?: string | null;
+        title?: string | null;
+      }
+    | undefined;
+
+  try {
+    const result = await coreClient.query({
+      dashboard: {
+        __args: { filter: { id: { eq: OPERATIONAL_DASHBOARD_RECORD_ID } } },
+        id: true,
+        pageLayoutId: true,
+        title: true,
+      },
+    });
+    dashboard = result.dashboard ?? undefined;
+  } catch (error) {
+    if (!isNotFoundError(error)) {
+      throw error;
+    }
+  }
 
   if (!dashboard) {
     await coreClient.mutation({

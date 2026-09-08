@@ -40,7 +40,7 @@ export default defineView({
       universalIdentifier: 'c92fd9d8-07d7-4d9e-afa8-95cecbd9d0b5',
       fieldMetadataUniversalIdentifier: PROJECT_STATUS_FIELD,
       operand: ViewFilterOperand.IS,
-      value: 'ACTIVE',
+      value: ['ACTIVE'],
     },
   ],
   sorts: [

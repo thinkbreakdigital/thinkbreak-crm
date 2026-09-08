@@ -14,8 +14,7 @@ function validateEnv(): { apiUrl: string; apiKey: string } {
   if (!apiUrl || !apiKey) {
     throw new Error(
       'TWENTY_API_URL and TWENTY_API_KEY must be set.\n' +
-        'Start a local server: yarn twenty docker:start\n' +
-        'Or set them in vitest env config.',
+        'Run this suite through CI or provide an approved disposable Twenty test workspace.',
     );
   }
 
@@ -67,6 +66,17 @@ export async function setup() {
   const result = await appDevOnce({
     appPath: APP_PATH,
     onProgress: (message: string) => console.log(`[dev] ${message}`),
+    onPlan: (plan: string) => console.log(plan),
+    confirmApply: async (deleteCount: number) => {
+      if (deleteCount === 0) {
+        return true;
+      }
+
+      console.error(
+        `Refusing to apply a metadata plan with ${deleteCount} destructive change(s).`,
+      );
+      return false;
+    },
   });
 
   if (!result.success) {

@@ -137,6 +137,13 @@ then creates or repairs one fixed Dashboard record that points to the layout.
 That record appears in Twenty's built-in Dashboard module. The function does
 not delete Dashboard records.
 
+Twenty skips this post-install hook during the `appDevOnce` development sync
+used by CI. Unit tests cover its create, repair, no-op, and error paths. A manual
+GitHub Actions workflow verifies the deployed layout, widgets, saved-view links,
+and Dashboard record. These checks do not prove visible Twenty UI behavior. The
+maintainer reported broken dashboard items before the current repairs, so hosted
+UI verification remains open.
+
 No view or page layout has a packaged navigation menu item. See CLAUDE.md's
 Navigation menu items section: the maintainer adds each sidebar entry by hand
 in the Twenty UI, and sets its position and icon there.
@@ -147,10 +154,14 @@ in the Twenty UI, and sets its position and icon there.
 `annualizedValue` when a Project is created or its billing inputs change.
 `src/logic-functions/update-deal-probability*.ts` maintains Deal `probability`
 when a Deal is created or its stage changes. Both skip writes when the stored
-value already matches the result.
+value already matches the result. Unit tests cover the pure calculations. CI
+integration tests create and update both record types, then wait for the
+database-event handlers to write the expected values.
 
 ## Not defined
 
-The app package has no front component, navigation menu item, skill, agent, or
-connection provider. It has no workflow that sets Company's `clientStatus` to
-Client. The maintainer builds that workflow in the Twenty UI.
+The app package has no front component, navigation menu item, skill, agent,
+connection provider, or workflow. The Person follow-up workflow is not
+configured or tested. It must be created inactive in the Twenty UI, assigned a
+named owner, and tested before activation. The app also has no workflow that
+sets Company's `clientStatus` to Client.

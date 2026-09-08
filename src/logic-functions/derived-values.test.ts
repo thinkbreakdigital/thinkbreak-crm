@@ -17,6 +17,15 @@ describe('calculateAnnualizedValue', () => {
     expect(calculateAnnualizedValue('RECURRING', null)).toBeNull();
     expect(calculateAnnualizedValue(null, { amountMicros: 1, currencyCode: 'USD' })).toBeNull();
   });
+
+  it('stops for an unknown billing type', () => {
+    expect(() =>
+      calculateAnnualizedValue('UNKNOWN', {
+        amountMicros: 1,
+        currencyCode: 'USD',
+      }),
+    ).toThrow('unknown billing type');
+  });
 });
 
 describe('calculateDealProbability', () => {
@@ -32,5 +41,9 @@ describe('calculateDealProbability', () => {
 
   it('stops for an unknown stage', () => {
     expect(() => calculateDealProbability('UNKNOWN')).toThrow('unmapped stage');
+  });
+
+  it('returns empty when the stage is missing', () => {
+    expect(calculateDealProbability(null)).toBeNull();
   });
 });

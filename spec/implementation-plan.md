@@ -1,9 +1,9 @@
 # thinkbreak-crm implementation plan
 
-- Status: Draft for maintainer review
+- Status: Active implementation and maintainer verification
 - Owner: ThinkBreak
-- Last reviewed: 2026-09-05
-- Last verified against twenty-sdk 2.37.0: 2026-09-05
+- Last reviewed: 2026-09-08
+- Last verified against twenty-sdk 2.37.0: 2026-09-08
 
 This plan develops `thinkbreak-crm` as one app in one repository. There is no
 framework fork and no downstream copy. The app deploys to the maintainer's
@@ -20,8 +20,8 @@ that project only after this app is deployed and in daily use.
 
 ## Fixed decisions
 
-- Keep the current core object, relation, and view structure. Remove the landing
-  page and retire custom `internalNotes` fields directly. The maintainer approved
+- Keep the current core object, relation, and view structure. The landing page
+  and custom `internalNotes` fields have been retired. The maintainer approved
   removal without a data migration.
 - Keep one repository and one deployed app. Do not fork a framework copy.
 - Deploy to the maintainer's hosted Twenty workspace through CD and use the app
@@ -52,12 +52,13 @@ that project only after this app is deployed and in daily use.
 - Give packaged logic functions only the record permissions they need. Do not
   grant delete permission when no packaged function deletes records.
 - Build reports with Twenty views and dashboard page layouts.
-- Store derived values that native dashboard widgets can sum.
-- Show one current-revenue value on an annualized contract basis.
-- Use stock Twenty workflows to create an email follow-up task when a new Person
-  has an email address.
-- Use a stock workflow branch to create a call task when that Person has a phone
-  number.
+- Store annualized values for record-level views and future aggregate widgets.
+- Defer current-revenue totals until the SDK supports a packaged aggregate
+  widget.
+- Configure an inactive stock Twenty workflow in the workspace to create an
+  email follow-up Task when a Person gains an email address.
+- Use a branch in that workflow to create a call Task when the Person gains a
+  phone number.
 - Link both tasks only to the Person.
 - Make both tasks due exactly 48 hours after creation.
 - Keep intake manual by default. Document the API contract so a website or an
@@ -78,11 +79,12 @@ the deployed model.
 - Industry is a custom object. Company `industry` is a nullable many-to-one
   relation to it, and Industry `companies` is the inverse relation.
 - Person is a standard Twenty object. The app adds the inverse primary-contact
-  and junction relations, plus `internalNotes`.
+  and junction relations.
 - Deal is a custom object. It has `stage`, `dealType`, `billingType`, `value`,
-  Company and Person relations, contact junctions, and `internalNotes`.
-- Project is a custom object. It has `billingType`, `value`, dates, Company and
-  Person relations, contact junctions, and `internalNotes`.
+  `probability`, `leadSource`, `intakeSubmissionId`, Company and Person
+  relations, and contact junctions.
+- Project is a custom object. It has `billingType`, `status`, `value`,
+  `annualizedValue`, dates, Company and Person relations, and contact junctions.
 - `dealContact` and `projectContact` are junction objects. They give Deal and
   Project many contacts without creating an unsupported many-to-many relation.
 
@@ -90,21 +92,22 @@ the deployed model.
 
 - `src/views/deals-board.ts` defines a Deal kanban grouped by `stage`.
 - `src/views/projects-list.ts` defines a Project table.
+- Four packaged table views provide the Operational dashboard worklists.
 - Neither object view has a packaged navigation menu item. The maintainer adds
   both entries in the Twenty UI and chooses their positions and icons.
-- The app has a packaged landing page and navigation item. Phase 2 removes
-  both.
+- `src/page-layouts/operational-dashboard.ts` defines the Operational dashboard
+  layout. The app has no landing page or packaged navigation item.
 
 ### Confirmed field findings
 
 - Company has `clientStatus` with Prospect, Client, and Former Client.
 - Company has a nullable `industry` relation. The package defines no Industry
   records, so workspace-created industries remain record data across upgrades.
-- Deal does not have lead attribution or a win probability.
-- Deal `value` already stores an estimated annual value.
+- Deal has lead attribution and a stage-derived probability.
+- Deal `value` stores an estimated annual value.
 - Project `value` stores a monthly amount for Recurring projects and a full
-  contract amount for Singular projects.
-- Project does not have a status or a stored annualized value.
+  contract amount for Singular projects. Project also has a status and a stored
+  annualized value.
 
 ### Where work is verified
 
@@ -112,24 +115,38 @@ There is no local development environment and no `local` remote. Do not add one,
 and do not ask the maintainer to start a server.
 
 The verification target is the throwaway Twenty instance that CI already spawns
-in `.github/workflows/ci.yml` through `spawn-twenty-app-dev-test`. Each run gets
-a clean workspace, `appDevOnce` in `src/__tests__/global-setup.ts` installs the
-app into it and generates the typed client, and the workspace is discarded when
-the run ends. Read the plan diff and the destroy count from the CI log.
+in `.github/workflows/ci.yml` through `spawn-twenty-app-dev-test`. CI pins the
+server, the SDK packages, and the Twenty action source to the 2.37.0 release.
+Each run gets a clean workspace. `appDevOnce` in
+`src/__tests__/global-setup.ts` installs the app and generates the typed client.
+The workspace is discarded when the run ends.
+
+The setup prints the metadata plan and rejects every nonzero destructive-change
+count. An approved retirement needs a separate reviewed migration path. Do not
+weaken the default gate to make a plan apply.
+
+The integration suite creates and updates Deal and Project records to exercise
+their database-event handlers. It does not run the post-install dashboard hook,
+because Twenty skips install hooks during development sync. The dashboard hook
+has deterministic unit coverage, and the hosted dashboard has a separate manual
+metadata verification workflow. A maintainer still verifies the rendered
+worklists in the Twenty UI.
 
 This replaces every `yarn twenty plan --remote local` gate in earlier drafts.
 Where this plan says "the CI workspace" it means that instance.
 
-- [ ] Add a CI step that fails the build when a sync reports a destroy, unless
-  the run carries an explicit allowance for a reviewed retirement. `appDevOnce`
+- [x] Add a CI gate that fails the build when a sync reports a destroy.
+  `appDevOnce`
   accepts `onPlan` and `confirmApply(deleteCount)`, so this gate is automatable
   rather than a human reading a diff.
 - [ ] Give the migration runner and any rehearsal job the CI workspace
   credentials through `TWENTY_API_URL` and `TWENTY_API_KEY`, which the spawn
   action already exports.
 
-CD in `.github/workflows/cd.yml` publishes a production package. When Twenty's
-Auto-upgrade setting is enabled, the installed app upgrades in the background.
+CD in `.github/workflows/cd.yml` publishes only commits that reach `main`. It
+does not deploy pull-request heads. The deployment action is pinned to the same
+Twenty release commit used by CI. When Twenty's Auto-upgrade setting is enabled,
+the installed app upgrades in the background.
 The manual `.github/workflows/verify-operational-dashboard.yml` workflow reads
 the fixed dashboard record without changing production data. It reads the
 workspace URL from `TWENTY_DEPLOY_URL` and the deployment key from
@@ -144,9 +161,14 @@ repairs its title and layout link. It does not delete a Dashboard record.
 ### Verified SDK capabilities
 
 Checked against the `twenty-sdk` and `twenty-client-sdk` 2.37.0 type declarations
-in `node_modules` on 2026-09-05. Recheck after an SDK upgrade. An item marked
+in `node_modules` on 2026-09-08. Recheck after an SDK upgrade. An item marked
 unverified fits the manifest but has never reached a server. Confirm each one
 against the CI workspace before you build on it.
+
+An attempted 2.39.0 upgrade failed the fresh-clone typecheck because that
+release's fallback generated schema does not export `DealUpdateInput` or
+`ProjectUpdateInput`. Keep both SDK packages and the CI server on 2.37.0 until
+Twenty restores those fallback types or this app removes the dependency on them.
 
 - A logic function reads and writes records. `CoreApiClient` from
   `twenty-client-sdk/core` is a typed GraphQL client for the workspace. The
@@ -177,25 +199,23 @@ against the CI workspace before you build on it.
   `emails.primaryEmail`, and a phone check reads `phones.primaryPhoneNumber`.
 - `STANDARD_OBJECT_UNIVERSAL_IDENTIFIERS.task.universalIdentifier` is
   `20202020-1ba1-48ba-bc83-ef7e5990ed10`, and `defineField` already targets
-  standard objects in this app. The manifest can express a field on Task. No
-  server has accepted one yet.
-- The `WidgetType` enum has 23 members, including `AGGREGATE_CHART`, `BAR_CHART`,
-  `PIE_CHART`, `LINE_CHART`, `RECORD_TABLE`, `FIELD`, and `FRONT_COMPONENT`.
-  There is no `FORM_FIELD`. Trust the enum over the prose documentation, which
-  lists a shorter set. `PageLayoutType` includes `DASHBOARD`, and
-  `PageLayoutTabLayoutMode` includes `GRID`, the dashboard mode.
-- `AggregateChartConfiguration` carries `aggregateFieldMetadataId`,
-  `aggregateOperation`, its own `ChartFilter`, and `label`, `numberFormat`,
-  `prefix`, and `suffix`. A stat tile needs no saved view behind it.
+  standard objects in this app. CI has accepted the packaged Task
+  `automationKey` field.
+- The `WidgetType` enum has 23 members. It includes `RECORD_TABLE`, `FIELD`, and
+  `FRONT_COMPONENT`. It does not include `FORM_FIELD`,
+  `AGGREGATE_CHART`, `BAR_CHART`, `PIE_CHART`, or `LINE_CHART`.
+  `PageLayoutType` includes `DASHBOARD`, and `PageLayoutTabLayoutMode` includes
+  `GRID`.
 - `ViewFilterOperand` includes `IS_RELATIVE`, `IS_IN_PAST`, `IS_EMPTY`, and
   `IS_NOT_EMPTY`, and `ViewFilterGroupLogicalOperator` includes `OR`, so
   relative-date and missing-value views are packageable.
+- SELECT filters with `IS` or `IS_NOT` store their option keys in an array.
 - A manifest renames serialized relation keys, so a `RECORD_TABLE` widget writes
   `viewUniversalIdentifier` where the runtime type says `viewId`.
 - `ViewFieldManifest` accepts `aggregateOperation`, and `ViewManifest` accepts
   `filters`, `filterGroups`, `kanbanAggregateOperation`, and
-  `kanbanAggregateOperationFieldMetadataUniversalIdentifier`. Aggregation lives
-  in the view, so a packaged view carries its own filter and totals.
+  `kanbanAggregateOperationFieldMetadataUniversalIdentifier`. These view fields
+  do not provide a packaged aggregate dashboard tile.
 
 ## What lives where
 
@@ -208,10 +228,11 @@ Two places hold configuration, and the split matters in every phase:
   not packaged app entities, so a reinstall does not restore them. Anything that
   lives only here must also be written down in `SETUP.md`.
 
-No assignee or timezone decision blocks the Person follow-up workflow. It assigns
-each Task to the workspace member who created the triggering Person and sets the
-due date to 48 hours after the Task is created. API-intake Task assignment is
-deferred to the future intake automation design.
+The Person follow-up workflow is not configured. Its planned assignment rule
+uses the workspace member who created the triggering Person, and its planned due
+date is 48 hours after Task creation. The workflow stays inactive until it has a
+named owner and tests. API-intake Task assignment remains deferred to the future
+intake automation design.
 
 ## Phase 1: Make the documentation reliable
 
@@ -540,16 +561,20 @@ This applies to the deployed workspace, not to the packaged app.
 
 ### Verification
 
-- [ ] Add unit tests for Recurring, Singular, empty, zero, and decimal values.
+- [x] Add unit tests for Recurring, Singular, empty, zero, and decimal values.
   Assert on `amountMicros` integers, not on display amounts.
-- [ ] Add a unit test that asserts the probability for all seven stages and a
+- [x] Add a unit test that asserts the probability for all seven stages and a
   stop for an unknown stage value.
 - [ ] Have the maintainer move one Deal through two stages in the workspace and
   confirm that `probability` follows.
 - [ ] Add a test that the calculation is idempotent. Running it twice on the same
   record produces one write, not a loop.
-- [ ] Keep the calculation itself in a pure function that the unit tests import
+- [x] Keep the calculation itself in a pure function that the unit tests import
   without a server or a generated client.
+- [x] Add integration tests that create and update Deal and Project records,
+  then wait for their derived values.
+- [ ] Confirm that the new runtime integration tests pass in the pinned Twenty
+  2.37.0 CI workspace.
 - [x] Skip migration-runner tests and rollback verification. The maintainer
   approved direct field removal with no migration work.
 - [x] Run the integration tests before typecheck in CI so `appDevOnce` installs
@@ -566,6 +591,13 @@ This applies to the deployed workspace, not to the packaged app.
 Keep record intake manual by default. The app supplies the fields and rules an
 optional integration needs. It supplies no webhook, website adapter, or
 automation-platform blueprint.
+
+- Risk: Moderate. The workflow writes Tasks in the hosted CRM.
+- Owner: Unassigned.
+- Status: Not configured or tested. Create it inactive.
+
+Assign an owner and complete the workflow tests before activation. A human
+reviews the inactive workflow and activates it after those checks pass.
 
 The integration contract can be written now. The Person workflow uses the
 workspace member who created the triggering Person and needs no timezone
@@ -781,6 +813,14 @@ or restores its title and layout link when they change. It does not delete a
 Dashboard record. To stop future reconciliation, deploy a version without the
 hook. The Dashboard record remains until a maintainer removes it.
 
+Twenty skips the post-install hook during `appDevOnce`, so CI cannot prove that
+the Dashboard record appears after a production install. Unit tests cover the
+hook's create, repair, no-op, and error paths. The manual verification workflow
+checks the deployed layout, widgets, saved-view links, and Dashboard record.
+These checks do not prove that the Twenty UI renders nonempty worklists. The
+maintainer reported broken dashboard items before the current filter and hook
+repairs. Hosted UI verification remains open.
+
 Then finish the Deals board:
 
 - [x] Show `probability` on the Deals board.
@@ -818,8 +858,10 @@ widget and CI accepts the metadata:
 
 - [ ] Prepare a small fixture set with open and terminal Deals, Active Projects,
   an overdue Task, and a Project missing a billing input.
-- [ ] Confirm in CI that the destroy count is zero before the views and page
+- [x] Add a CI gate that rejects any destructive metadata plan before views and page
   layout reach the hosted workspace.
+- [x] Add unit coverage for SELECT filter value shapes, the four worklist widget
+  definitions, and the dashboard hook's create and repair behavior.
 - [ ] Let the maintainer inspect the applied dashboard and verify each worklist.
 - [x] Confirm that no widget uses an unsupported chart or aggregate type.
 - [ ] Do not use browser automation, screenshots, or end-to-end UI tests.
@@ -923,9 +965,9 @@ Do not reopen these decisions without new evidence:
   `databaseEventTriggerSettings` and `CoreApiClient`. A fresh install's fallback
   declarations are not a workspace-schema check. The integration setup generates
   the real client, so CI runs typecheck after that setup installs the app.
-- Packaged views provide the dashboard filters and aggregate footers.
-  `RECORD_TABLE` widgets embed those views. Do not build the dashboard by hand in
-  the Twenty UI.
+- Packaged views provide the dashboard filters. `RECORD_TABLE` widgets embed
+  those views. They are capped worklists, not aggregate metrics. Do not build
+  the dashboard by hand in the Twenty UI.
 - `spec/implementation-rules.md` is not needed. `AGENTS.md` already holds those
   rules.
 - A derived CURRENCY field inherits `currencyCode` from its source.
@@ -934,8 +976,8 @@ Do not reopen these decisions without new evidence:
 - Stage probabilities are Pipeline 10, Outreach 20, Appt Set 30, Appt Met 50,
   Quote 75, Won 100, and Lost 0. Recalibrate from measured win rates, not from
   opinion.
-- No reported number comes from a table footer or a kanban column total. Every
-  headline figure is an `AGGREGATE_CHART` tile.
+- No reported number comes from a table footer or a kanban column total. Defer
+  headline figures until `WidgetType` supports a packaged aggregate widget.
 - Deal stages stay exactly as `src/fields/deal-stage.ts` defines them. No phase
   renames, remaps, adds, or removes a stage, so no phase touches the packaged
   kanban groups that pin those values.
@@ -945,8 +987,9 @@ Do not reopen these decisions without new evidence:
   webhook or automation-platform implementation.
 - Built-in Notes store free-form context. The app adds no intake-summary,
   form-slug, or raw-request field.
-- Stock workflows create the email and conditional call Tasks. Both Tasks link
-  only to Person.
-- Remove the landing page and its navigation item before release.
+- A planned stock workflow creates the email and conditional call Tasks. The
+  workflow is not configured or tested. Create it inactive, then assign an owner
+  and pass the required tests before activation. Both Tasks link only to Person.
+- The app has no landing page or landing-page navigation item.
 - Start AI work as a separate project after the app is deployed and in active
   use.

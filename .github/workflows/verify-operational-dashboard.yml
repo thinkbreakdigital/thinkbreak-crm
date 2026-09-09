@@ -392,8 +392,23 @@ jobs:
               }
             }
           `}));')"
+          logs_request_body="$(node -e 'process.stdout.write(JSON.stringify({query: `
+            query InspectAnnualizedValueFunctionLogs {
+              createFunction: logicFunctionLogs(
+                input: { universalIdentifier: "0d404833-c72e-48cb-ad09-f03573d1bc13" }
+              ) {
+                logs
+              }
+              updateFunction: logicFunctionLogs(
+                input: { universalIdentifier: "d15abb48-1fbe-4850-afa9-3480929b9112" }
+              ) {
+                logs
+              }
+            }
+          `}));')"
           metadata_response_file="$RUNNER_TEMP/annualized-value-metadata-response.json"
           project_response_file="$RUNNER_TEMP/annualized-value-project-response.json"
+          logs_response_file="$RUNNER_TEMP/annualized-value-logs-response.json"
           curl --fail-with-body --silent --show-error \
             --header "Authorization: Bearer $API_KEY" \
             --header 'Content-Type: application/json' \
@@ -406,7 +421,13 @@ jobs:
             --data "$project_request_body" \
             --output "$project_response_file" \
             "$graphql_url"
-          node - "$metadata_response_file" "$project_response_file" <<'NODE'
+          curl --fail-with-body --silent --show-error \
+            --header "Authorization: Bearer $API_KEY" \
+            --header 'Content-Type: application/json' \
+            --data "$logs_request_body" \
+            --output "$logs_response_file" \
+            "$metadata_url"
+          node - "$metadata_response_file" "$project_response_file" "$logs_response_file" <<'NODE'
             const fs = require('node:fs');
 
             const parseResponse = (label, responsePath) => {
@@ -421,6 +442,7 @@ jobs:
 
             const metadata = parseResponse('Metadata API', process.argv[2]);
             const core = parseResponse('Core API', process.argv[3]);
+            const logsResponse = JSON.parse(fs.readFileSync(process.argv[4], 'utf8'));
             const annualizedFunctionUniversalIdentifiers = new Set([
               '0d404833-c72e-48cb-ad09-f03573d1bc13',
               'd15abb48-1fbe-4850-afa9-3480929b9112',
@@ -441,6 +463,10 @@ jobs:
               expectedValueMissingCreatedBeforeFunction: 0,
               expectedValueMissingCreatedAfterFunction: 0,
               expectedValueMissingUpdatedAfterFunction: 0,
+              emptyAnnualizedComposite: 0,
+              amountMismatch: 0,
+              currencyMismatch: 0,
+              observedMultiplierCounts: {},
             };
 
             for (const project of projects) {
@@ -460,8 +486,16 @@ jobs:
                 continue;
               }
 
-              if (!project.annualizedValue) {
+              if (
+                !project.annualizedValue ||
+                project.annualizedValue.amountMicros == null ||
+                !project.annualizedValue.currencyCode
+              ) {
                 projectAudit.expectedValueMissing += 1;
+
+                if (project.annualizedValue) {
+                  projectAudit.emptyAnnualizedComposite += 1;
+                }
 
                 if (firstFunctionCreatedAt && project.createdAt < firstFunctionCreatedAt) {
                   projectAudit.expectedValueMissingCreatedBeforeFunction += 1;
@@ -477,18 +511,64 @@ jobs:
               }
 
               const expectedAmountMicros = Number(project.value.amountMicros) * multiplier;
-              const matches =
-                Number(project.annualizedValue.amountMicros) === expectedAmountMicros &&
+              const amountMatches =
+                Number(project.annualizedValue.amountMicros) === expectedAmountMicros;
+              const currencyMatches =
                 project.annualizedValue.currencyCode === project.value.currencyCode;
+              const observedMultiplier = Number(project.value.amountMicros) === 0
+                ? 'source-zero'
+                : String(
+                    Number(project.annualizedValue.amountMicros) /
+                      Number(project.value.amountMicros),
+                  );
+              projectAudit.observedMultiplierCounts[observedMultiplier] =
+                (projectAudit.observedMultiplierCounts[observedMultiplier] ?? 0) + 1;
 
-              if (matches) {
+              if (amountMatches && currencyMatches) {
                 projectAudit.expectedValuePresent += 1;
               } else {
                 projectAudit.mismatchedValue += 1;
+
+                if (!amountMatches) {
+                  projectAudit.amountMismatch += 1;
+                }
+
+                if (!currencyMatches) {
+                  projectAudit.currencyMismatch += 1;
+                }
               }
             }
 
-            console.log(JSON.stringify({ logicFunctions, projectAudit }, null, 2));
+            const sanitizeLogs = (logs) => {
+              if (typeof logs !== 'string') return [];
+
+              return logs
+                .split('\n')
+                .filter((line) =>
+                  /annualized|error|fail|forbidden|permission|updateProject/i.test(line),
+                )
+                .slice(-30)
+                .map((line) =>
+                  line
+                    .replace(
+                      /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/gi,
+                      '[UUID]',
+                    )
+                    .replace(/https?:\/\/\S+/gi, '[URL]')
+                    .replace(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/gi, '[EMAIL]')
+                    .replace(/\b\d{5,}\b/g, '[NUMBER]'),
+                );
+            };
+            const logicFunctionLogSummary = logsResponse.errors?.length
+              ? { queryErrors: logsResponse.errors.map((error) => error.message) }
+              : {
+                  createFunction: sanitizeLogs(logsResponse.data?.createFunction?.logs),
+                  updateFunction: sanitizeLogs(logsResponse.data?.updateFunction?.logs),
+                };
+
+            console.log(
+              JSON.stringify({ logicFunctions, projectAudit, logicFunctionLogSummary }, null, 2),
+            );
           NODE
 
       - name: Verify Operational dashboard metadata and record

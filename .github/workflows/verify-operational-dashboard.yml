@@ -394,10 +394,15 @@ jobs:
           `}));')"
           logs_request_body="$(node -e 'process.stdout.write(JSON.stringify({query: `
             query InspectAnnualizedValueFunctionLogs {
-              logicFunctionLogs(
-                input: { universalIdentifier: "d15abb48-1fbe-4850-afa9-3480929b9112" }
-              ) {
-                logs
+              eventLogs(input: { table: APPLICATION_LOG, first: 100 }) {
+                totalCount
+                records {
+                  event
+                  timestamp
+                  properties
+                  recordId
+                  objectMetadataId
+                }
               }
             }
           `}));')"
@@ -546,30 +551,32 @@ jobs:
               }
             }
 
-            const sanitizeLogs = (logs) => {
-              if (typeof logs !== 'string') return [];
-
-              return logs
-                .split('\n')
-                .filter((line) =>
-                  /annualized|error|fail|forbidden|permission|updateProject/i.test(line),
+            const sanitizeLogValue = (value) => {
+              return JSON.stringify(value)
+                .replace(
+                  /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/gi,
+                  '[UUID]',
                 )
-                .slice(-30)
-                .map((line) =>
-                  line
-                    .replace(
-                      /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/gi,
-                      '[UUID]',
-                    )
-                    .replace(/https?:\/\/\S+/gi, '[URL]')
-                    .replace(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/gi, '[EMAIL]')
-                    .replace(/\b\d{5,}\b/g, '[NUMBER]'),
-                );
+                .replace(/https?:\/\/[^\s"']+/gi, '[URL]')
+                .replace(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/gi, '[EMAIL]')
+                .replace(/\b\d{5,}\b/g, '[NUMBER]');
             };
             const logicFunctionLogSummary = logsResponse.errors?.length
               ? { queryErrors: logsResponse.errors.map((error) => error.message) }
               : {
-                  updateFunction: sanitizeLogs(logsResponse.data?.logicFunctionLogs?.logs),
+                  totalApplicationLogs: logsResponse.data?.eventLogs?.totalCount ?? null,
+                  matchingLogs: (logsResponse.data?.eventLogs?.records ?? [])
+                    .filter((record) =>
+                      /annualized|error|fail|forbidden|permission|updateProject/i.test(
+                        JSON.stringify(record),
+                      ),
+                    )
+                    .slice(-30)
+                    .map((record) => ({
+                      event: record.event,
+                      timestamp: record.timestamp,
+                      details: sanitizeLogValue(record.properties),
+                    })),
                 };
 
             console.log(

@@ -350,6 +350,147 @@ jobs:
             console.log(JSON.stringify({ dashboards, layouts, views: resolvedViews }, null, 2));
           NODE
 
+      - name: Diagnose deployed Project annualized values
+        env:
+          API_URL: ${{ vars.TWENTY_DEPLOY_URL }}
+          API_KEY: ${{ secrets.TWENTY_DEPLOY_API_KEY }}
+        run: |
+          metadata_url="${API_URL%/}/metadata"
+          graphql_url="${API_URL%/}/graphql"
+          metadata_request_body="$(node -e 'process.stdout.write(JSON.stringify({query: `
+            query InspectAnnualizedValueFunctions {
+              findManyLogicFunctions {
+                id
+                name
+                universalIdentifier
+                applicationId
+                executionMode
+                databaseEventTriggerSettings
+                createdAt
+                updatedAt
+              }
+            }
+          `}));')"
+          project_request_body="$(node -e 'process.stdout.write(JSON.stringify({query: `
+            query InspectProjectAnnualizedValues {
+              projects {
+                edges {
+                  node {
+                    billingType
+                    value {
+                      amountMicros
+                      currencyCode
+                    }
+                    annualizedValue {
+                      amountMicros
+                      currencyCode
+                    }
+                    createdAt
+                    updatedAt
+                  }
+                }
+              }
+            }
+          `}));')"
+          metadata_response_file="$RUNNER_TEMP/annualized-value-metadata-response.json"
+          project_response_file="$RUNNER_TEMP/annualized-value-project-response.json"
+          curl --fail-with-body --silent --show-error \
+            --header "Authorization: Bearer $API_KEY" \
+            --header 'Content-Type: application/json' \
+            --data "$metadata_request_body" \
+            --output "$metadata_response_file" \
+            "$metadata_url"
+          curl --fail-with-body --silent --show-error \
+            --header "Authorization: Bearer $API_KEY" \
+            --header 'Content-Type: application/json' \
+            --data "$project_request_body" \
+            --output "$project_response_file" \
+            "$graphql_url"
+          node - "$metadata_response_file" "$project_response_file" <<'NODE'
+            const fs = require('node:fs');
+
+            const parseResponse = (label, responsePath) => {
+              const response = JSON.parse(fs.readFileSync(responsePath, 'utf8'));
+
+              if (response.errors?.length) {
+                throw new Error(`${label}: ${response.errors.map((error) => error.message).join('; ')}`);
+              }
+
+              return response.data;
+            };
+
+            const metadata = parseResponse('Metadata API', process.argv[2]);
+            const core = parseResponse('Core API', process.argv[3]);
+            const annualizedFunctionUniversalIdentifiers = new Set([
+              '0d404833-c72e-48cb-ad09-f03573d1bc13',
+              'd15abb48-1fbe-4850-afa9-3480929b9112',
+            ]);
+            const logicFunctions = metadata.findManyLogicFunctions.filter((logicFunction) =>
+              annualizedFunctionUniversalIdentifiers.has(logicFunction.universalIdentifier),
+            );
+            const firstFunctionCreatedAt = logicFunctions
+              .map((logicFunction) => logicFunction.createdAt)
+              .sort()[0] ?? null;
+            const projects = core.projects.edges.map(({ node }) => node);
+            const projectAudit = {
+              sampledProjects: projects.length,
+              missingInputs: 0,
+              expectedValuePresent: 0,
+              expectedValueMissing: 0,
+              mismatchedValue: 0,
+              expectedValueMissingCreatedBeforeFunction: 0,
+              expectedValueMissingCreatedAfterFunction: 0,
+              expectedValueMissingUpdatedAfterFunction: 0,
+            };
+
+            for (const project of projects) {
+              if (!project.billingType || !project.value) {
+                projectAudit.missingInputs += 1;
+                continue;
+              }
+
+              const multiplier = project.billingType === 'RECURRING'
+                ? 12
+                : project.billingType === 'SINGULAR'
+                  ? 1
+                  : null;
+
+              if (multiplier === null) {
+                projectAudit.mismatchedValue += 1;
+                continue;
+              }
+
+              if (!project.annualizedValue) {
+                projectAudit.expectedValueMissing += 1;
+
+                if (firstFunctionCreatedAt && project.createdAt < firstFunctionCreatedAt) {
+                  projectAudit.expectedValueMissingCreatedBeforeFunction += 1;
+                } else if (firstFunctionCreatedAt) {
+                  projectAudit.expectedValueMissingCreatedAfterFunction += 1;
+                }
+
+                if (firstFunctionCreatedAt && project.updatedAt > firstFunctionCreatedAt) {
+                  projectAudit.expectedValueMissingUpdatedAfterFunction += 1;
+                }
+
+                continue;
+              }
+
+              const expectedAmountMicros = Number(project.value.amountMicros) * multiplier;
+              const matches =
+                Number(project.annualizedValue.amountMicros) === expectedAmountMicros &&
+                project.annualizedValue.currencyCode === project.value.currencyCode;
+
+              if (matches) {
+                projectAudit.expectedValuePresent += 1;
+              } else {
+                projectAudit.mismatchedValue += 1;
+              }
+            }
+
+            console.log(JSON.stringify({ logicFunctions, projectAudit }, null, 2));
+          NODE
+
       - name: Verify Operational dashboard metadata and record
         env:
           API_URL: ${{ vars.TWENTY_DEPLOY_URL }}

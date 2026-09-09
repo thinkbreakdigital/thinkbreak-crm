@@ -4,12 +4,12 @@ export type CurrencyValue = {
 };
 
 export const DEAL_STAGE_PROBABILITIES = {
-  PIPELINE: 10,
-  OUTREACH: 20,
-  APPT_SET: 30,
-  APPT_MET: 50,
-  QUOTE: 75,
-  WON: 100,
+  PIPELINE: 0.1,
+  OUTREACH: 0.2,
+  APPT_SET: 0.3,
+  APPT_MET: 0.5,
+  QUOTE: 0.75,
+  WON: 1,
   LOST: 0,
 } as const;
 

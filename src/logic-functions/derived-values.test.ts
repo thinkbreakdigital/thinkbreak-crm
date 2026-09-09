@@ -30,12 +30,12 @@ describe('calculateAnnualizedValue', () => {
 
 describe('calculateDealProbability', () => {
   it('maps every configured Deal stage', () => {
-    expect(calculateDealProbability('PIPELINE')).toBe(10);
-    expect(calculateDealProbability('OUTREACH')).toBe(20);
-    expect(calculateDealProbability('APPT_SET')).toBe(30);
-    expect(calculateDealProbability('APPT_MET')).toBe(50);
-    expect(calculateDealProbability('QUOTE')).toBe(75);
-    expect(calculateDealProbability('WON')).toBe(100);
+    expect(calculateDealProbability('PIPELINE')).toBe(0.1);
+    expect(calculateDealProbability('OUTREACH')).toBe(0.2);
+    expect(calculateDealProbability('APPT_SET')).toBe(0.3);
+    expect(calculateDealProbability('APPT_MET')).toBe(0.5);
+    expect(calculateDealProbability('QUOTE')).toBe(0.75);
+    expect(calculateDealProbability('WON')).toBe(1);
     expect(calculateDealProbability('LOST')).toBe(0);
   });
 

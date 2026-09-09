@@ -167,12 +167,12 @@ describe('Derived values', () => {
       };
 
       const createdProbability = await pollForDerivedValue({
-        description: `Deal ${dealId} probability to become 20 after creation`,
+        description: `Deal ${dealId} probability to become 0.2 after creation`,
         read: readProbability,
-        matches: (probability) => probability === 20,
+        matches: (probability) => probability === 0.2,
       });
 
-      expect(createdProbability).toBe(20);
+      expect(createdProbability).toBe(0.2);
 
       await client.mutation({
         updateDeal: {
@@ -182,12 +182,12 @@ describe('Derived values', () => {
       });
 
       const updatedProbability = await pollForDerivedValue({
-        description: `Deal ${dealId} probability to become 75 after its stage update`,
+        description: `Deal ${dealId} probability to become 0.75 after its stage update`,
         read: readProbability,
-        matches: (probability) => probability === 75,
+        matches: (probability) => probability === 0.75,
       });
 
-      expect(updatedProbability).toBe(75);
+      expect(updatedProbability).toBe(0.75);
     } catch (error) {
       testError = error;
       throw error;

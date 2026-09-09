@@ -551,8 +551,8 @@ This applies to the deployed workspace, not to the packaged app.
 
 ### Acceptance criteria
 
-- [ ] Each of the seven Deal stages sets its mapped probability, with Won at 100
-  and Lost at 0.
+- [ ] Each of the seven Deal stages sets its mapped probability, with Won stored
+  as 1 and displayed as 100%, and Lost at 0.
 - [ ] An unmapped stage reports an actionable error instead of leaving a stale
   probability.
 - [ ] Project `annualizedValue` matches the formula in this plan, computed in
@@ -976,9 +976,9 @@ Do not reopen these decisions without new evidence:
 - A derived CURRENCY field inherits `currencyCode` from its source.
 - Deal `probability` stays a plain NUMBER that a packaged logic function fills
   from the stage mapping in source. Defer weighted pipeline calculations.
-- Stage probabilities are Pipeline 10, Outreach 20, Appt Set 30, Appt Met 50,
-  Quote 75, Won 100, and Lost 0. Recalibrate from measured win rates, not from
-  opinion.
+- Deal probability stores a ratio and displays it as a percentage. The stage mapping
+  is Pipeline 0.1, Outreach 0.2, Appt Set 0.3, Appt Met 0.5, Quote 0.75, Won 1,
+  and Lost 0. Recalibrate from measured win rates, not from opinion.
 - No reported number comes from a table footer or a kanban column total. Defer
   headline figures until `WidgetType` supports a packaged aggregate widget.
 - Deal stages stay exactly as `src/fields/deal-stage.ts` defines them. No phase

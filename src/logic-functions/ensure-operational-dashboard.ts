@@ -67,6 +67,7 @@ export const ensureOperationalDashboard = async (
   let dashboard:
     | {
         id: string;
+        deletedAt?: string | null;
         pageLayoutId?: string | null;
         title?: string | null;
       }
@@ -75,8 +76,17 @@ export const ensureOperationalDashboard = async (
   try {
     const result = await coreClient.query({
       dashboard: {
-        __args: { filter: { id: { eq: OPERATIONAL_DASHBOARD_RECORD_ID } } },
+        __args: {
+          filter: {
+            id: { eq: OPERATIONAL_DASHBOARD_RECORD_ID },
+            or: [
+              { deletedAt: { is: 'NULL' } },
+              { deletedAt: { is: 'NOT_NULL' } },
+            ],
+          },
+        },
         id: true,
+        deletedAt: true,
         pageLayoutId: true,
         title: true,
       },
@@ -102,6 +112,15 @@ export const ensureOperationalDashboard = async (
       },
     });
     return;
+  }
+
+  if (dashboard.deletedAt) {
+    await coreClient.mutation({
+      restoreDashboard: {
+        __args: { id: dashboard.id },
+        id: true,
+      },
+    });
   }
 
   if (

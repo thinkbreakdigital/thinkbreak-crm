@@ -143,16 +143,18 @@ maintainer's captured dashboard rather than placeholder 1 by 1 cells.
 
 `src/logic-functions/ensure-operational-dashboard.ts` runs after installation
 and every app upgrade. It resolves this layout through Twenty's metadata API,
-then creates or repairs one fixed Dashboard record that points to the layout.
-That record appears in Twenty's built-in Dashboard module. The function does
-not delete Dashboard records.
+then creates, restores, or repairs one fixed Dashboard record that points to
+the layout. The function includes soft-deleted records in its lookup and
+restores the fixed record before repairing its title or layout link. That
+record appears in Twenty's built-in Dashboard module. The function does not
+delete Dashboard records.
 
 Twenty skips this post-install hook during the `appDevOnce` development sync
-used by CI. Unit tests cover its create, repair, no-op, and error paths. A manual
-GitHub Actions workflow verifies the deployed layout, widgets, saved-view links,
-and Dashboard record. These checks do not prove visible Twenty UI behavior. The
-maintainer reported broken dashboard items before the current repairs, so hosted
-UI verification remains open.
+used by CI. Unit tests cover its create, restore, repair, no-op, and error paths.
+A manual GitHub Actions workflow verifies the deployed layout, widgets,
+saved-view links, and Dashboard record. These checks do not prove visible Twenty
+UI behavior. The maintainer reported broken dashboard items before the current
+repairs, so hosted UI verification remains open.
 
 No view or page layout has a packaged navigation menu item. See CLAUDE.md's
 Navigation menu items section: the maintainer adds each sidebar entry by hand

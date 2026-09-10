@@ -287,6 +287,47 @@ describe('ensureOperationalDashboard', () => {
     });
   });
 
+  it('restores a soft-deleted Dashboard record instead of recreating its ID', async () => {
+    clientMocks.coreQuery.mockResolvedValue({
+      dashboard: {
+        id: OPERATIONAL_DASHBOARD_RECORD_ID,
+        deletedAt: '2026-09-10T12:00:00.000Z',
+        pageLayoutId: PAGE_LAYOUT_ID,
+        title: OPERATIONAL_DASHBOARD_TITLE,
+      },
+    });
+    clientMocks.coreMutation.mockResolvedValue({
+      restoreDashboard: { id: OPERATIONAL_DASHBOARD_RECORD_ID },
+    });
+
+    await ensureOperationalDashboard(installPayload);
+
+    expect(clientMocks.coreQuery).toHaveBeenCalledWith({
+      dashboard: {
+        __args: {
+          filter: {
+            id: { eq: OPERATIONAL_DASHBOARD_RECORD_ID },
+            or: [
+              { deletedAt: { is: 'NULL' } },
+              { deletedAt: { is: 'NOT_NULL' } },
+            ],
+          },
+        },
+        id: true,
+        deletedAt: true,
+        pageLayoutId: true,
+        title: true,
+      },
+    });
+    expect(clientMocks.coreMutation).toHaveBeenCalledOnce();
+    expect(clientMocks.coreMutation).toHaveBeenCalledWith({
+      restoreDashboard: {
+        __args: { id: OPERATIONAL_DASHBOARD_RECORD_ID },
+        id: true,
+      },
+    });
+  });
+
   it('does not hide GraphQL errors other than NOT_FOUND', async () => {
     const error = {
       errors: [

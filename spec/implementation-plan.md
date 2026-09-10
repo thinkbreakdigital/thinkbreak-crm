@@ -819,23 +819,26 @@ substitute.
 - [x] Data quality. A Project view for records missing `status`, `billingType`,
   or `value`, using `IS_EMPTY` filters in an `OR` filter group.
 - [x] Use `MetadataApiClient.getPageLayouts` to resolve the packaged layout's
-  runtime ID, then create or repair one fixed Operational dashboard Dashboard
-  record through `CoreApiClient`. The synchronous post-install hook runs on a
-  fresh install and each app upgrade. The SDK has no `defineDashboard` entity.
-  Do not use a page-layout navigation item, create a blank Dashboard layout, or
+  runtime ID, then create, restore, or repair one fixed Operational dashboard
+  Dashboard record through `CoreApiClient`. The lookup includes soft-deleted
+  records, so an upgrade restores the fixed record instead of trying to reuse
+  its occupied primary key. The synchronous post-install hook runs on a fresh
+  install and each app upgrade. The SDK has no `defineDashboard` entity. Do not
+  use a page-layout navigation item, create a blank Dashboard layout, or
   identify the record by a display label alone.
 
-The hook touches one fixed Dashboard record. It creates the record when absent
-or restores its title and layout link when they change. It does not delete a
-Dashboard record. To stop future reconciliation, deploy a version without the
-hook. The Dashboard record remains until a maintainer removes it.
+The hook touches one fixed Dashboard record. It creates the record when absent,
+restores it when soft-deleted, and repairs its title and layout link when they
+change. It does not delete a Dashboard record. To stop future reconciliation,
+deploy a version without the hook. The Dashboard record remains until a
+maintainer removes it.
 
 Twenty skips the post-install hook during `appDevOnce`, so CI cannot prove that
 the Dashboard record appears after a production install. Unit tests cover the
-hook's create, repair, no-op, and error paths. The manual verification workflow
-checks the deployed tabs, 14 widget contracts, resolved object bindings,
-saved-view links, and Dashboard record. These checks do not prove visible UI
-behavior. Hosted UI verification remains a maintainer step.
+hook's create, restore, repair, no-op, and error paths. The manual verification
+workflow checks the deployed tabs, 14 widget contracts, resolved object
+bindings, saved-view links, and Dashboard record. These checks do not prove
+visible UI behavior. Hosted UI verification remains a maintainer step.
 
 Then finish the Deals board:
 

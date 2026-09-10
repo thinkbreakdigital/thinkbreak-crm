@@ -24,7 +24,7 @@ jobs:
             exit 1
           fi
 
-      - name: Verify Operational dashboard metadata and record
+      - name: Verify Operational Dashboard metadata and record
         env:
           API_URL: ${{ vars.TWENTY_DEPLOY_URL }}
           API_KEY: ${{ secrets.TWENTY_DEPLOY_API_KEY }}
@@ -156,13 +156,13 @@ jobs:
 
             if (layouts.length !== 1) {
               throw new Error(
-                `Expected one packaged Operational dashboard layout, found ${layouts.length}.`,
+                `Expected one packaged Operational Dashboard layout, found ${layouts.length}.`,
               );
             }
 
             const layout = layouts[0];
-            if (layout.name !== 'Operational dashboard') {
-              throw new Error(`Operational dashboard layout name was ${JSON.stringify(layout.name)}.`);
+            if (layout.name !== 'Operational Dashboard') {
+              throw new Error(`Operational Dashboard layout name was ${JSON.stringify(layout.name)}.`);
             }
             if (!Array.isArray(layout.tabs)) {
               throw new Error('Twenty Metadata API did not expose page layout tabs.');
@@ -173,7 +173,7 @@ jobs:
             );
             if (activeTabs.length !== 3) {
               throw new Error(
-                `Expected three active Operational dashboard tabs, found ${activeTabs.length}.`,
+                `Expected three active Operational Dashboard tabs, found ${activeTabs.length}.`,
               );
             }
 
@@ -205,7 +205,7 @@ jobs:
                 tab.layoutMode !== 'GRID'
               ) {
                 throw new Error(
-                  `Operational dashboard tab ${expected.title} did not match: ${JSON.stringify(tab)}.`,
+                  `Operational Dashboard tab ${expected.title} did not match: ${JSON.stringify(tab)}.`,
                 );
               }
             }
@@ -226,14 +226,14 @@ jobs:
                 position: { row: 0, column: 6, rowSpan: 6, columnSpan: 6 },
               },
               {
-                title: 'Current Revenue',
+                title: 'Current Annual Revenue',
                 type: 'GRAPH',
                 configurationType: 'AGGREGATE_CHART',
                 aggregateOperation: 'SUM',
                 position: { row: 6, column: 0, rowSpan: 2, columnSpan: 3 },
               },
               {
-                title: 'Projected Revenue',
+                title: 'Projected Unrealized Revenue',
                 type: 'GRAPH',
                 configurationType: 'AGGREGATE_CHART',
                 aggregateOperation: 'SUM',
@@ -325,7 +325,7 @@ jobs:
 
             if (activeWidgets.length !== expectedWidgets.length) {
               throw new Error(
-                `Expected ${expectedWidgets.length} active Operational dashboard widgets, found ${activeWidgets.length}.`,
+                `Expected ${expectedWidgets.length} active Operational Dashboard widgets, found ${activeWidgets.length}.`,
               );
             }
 
@@ -391,17 +391,17 @@ jobs:
 
             const dashboard = core.dashboard;
             if (!dashboard) {
-              throw new Error('Operational dashboard record was not found.');
+              throw new Error('Operational Dashboard record was not found.');
             }
             if (dashboard.id !== '9fc9c362-a362-4079-814d-268fcd9436c7') {
-              throw new Error('Operational dashboard record ID did not match.');
+              throw new Error('Operational Dashboard record ID did not match.');
             }
-            if (dashboard.title !== 'Operational dashboard') {
-              throw new Error('Operational dashboard title did not match.');
+            if (dashboard.title !== 'Operational Dashboard') {
+              throw new Error('Operational Dashboard title did not match.');
             }
             if (dashboard.pageLayoutId !== layout.id) {
               throw new Error(
-                `Operational dashboard record points to ${JSON.stringify(dashboard.pageLayoutId)}, expected ${layout.id}.`,
+                `Operational Dashboard record points to ${JSON.stringify(dashboard.pageLayoutId)}, expected ${layout.id}.`,
               );
             }
             console.log(

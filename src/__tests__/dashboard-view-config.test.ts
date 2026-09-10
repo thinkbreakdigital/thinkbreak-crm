@@ -125,13 +125,13 @@ describe('dashboard view metadata', () => {
         position: { layoutMode: 'GRID', row: 0, column: 6, rowSpan: 6, columnSpan: 6 },
       },
       {
-        title: 'Current Revenue',
+        title: 'Current Annual Revenue',
         type: 'GRAPH',
         configurationType: 'AGGREGATE_CHART',
         position: { layoutMode: 'GRID', row: 6, column: 0, rowSpan: 2, columnSpan: 3 },
       },
       {
-        title: 'Projected Revenue',
+        title: 'Projected Unrealized Revenue',
         type: 'GRAPH',
         configurationType: 'AGGREGATE_CHART',
         position: { layoutMode: 'GRID', row: 6, column: 3, rowSpan: 2, columnSpan: 3 },
@@ -221,7 +221,7 @@ describe('dashboard view metadata', () => {
     const widgetByTitle = (title: string) =>
       widgets.find((widget) => widget.title === title);
 
-    expect(widgetByTitle('Current Revenue')?.configuration).toMatchObject({
+    expect(widgetByTitle('Current Annual Revenue')?.configuration).toMatchObject({
       configurationType: 'AGGREGATE_CHART',
       aggregateOperation: 'SUM',
       prefix: '$',
@@ -230,7 +230,7 @@ describe('dashboard view metadata', () => {
         recordFilterGroups: [{ logicalOperator: 'AND' }],
       },
     });
-    expect(widgetByTitle('Projected Revenue')?.configuration).toMatchObject({
+    expect(widgetByTitle('Projected Unrealized Revenue')?.configuration).toMatchObject({
       configurationType: 'AGGREGATE_CHART',
       aggregateFieldMetadataUniversalIdentifier:
         '71c1f015-60de-4a63-bc54-5be3218da742',

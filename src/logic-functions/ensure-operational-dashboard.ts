@@ -28,7 +28,7 @@ const getOperationalDashboardLayoutId = async (): Promise<string> => {
   );
 
   if (!layout) {
-    throw new Error('The Operational dashboard page layout was not found after installation.');
+    throw new Error('The Operational Dashboard page layout was not found after installation.');
   }
 
   return layout.id;
@@ -128,7 +128,7 @@ export const ensureOperationalDashboard = async (
 export default definePostInstallLogicFunction({
   universalIdentifier: '8913b0b0-294f-454d-946d-061f06ccbd5e',
   name: 'ensureOperationalDashboard',
-  description: 'Ensures the Operational dashboard appears in Twenty dashboards.',
+  description: 'Ensures the Operational Dashboard appears in Twenty dashboards.',
   timeoutSeconds: 30,
   shouldRunOnVersionUpgrade: true,
   shouldRunSynchronously: true,

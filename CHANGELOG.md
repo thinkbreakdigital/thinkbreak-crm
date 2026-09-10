@@ -2,6 +2,20 @@
 
 All notable changes to this application are documented in this file.
 
+## 0.2.0
+
+- Establish the packaged model as ThinkBreak's preferred CRM structure for
+  Companies, People, Deals, Projects, and Industries in Twenty.
+- Calculate Deal probability from stage and weighted value from Est. Annual
+  Value and Probability.
+- Calculate annualized Project value for recurring and singular billing.
+- Package the three-tab Operational Dashboard, its revenue metrics, charts, and
+  worklists.
+- Rename the revenue metrics to Current Annual Revenue and Projected Unrealized
+  Revenue.
+- Document the CRM model, calculated fields, dashboard configuration, packaged
+  views, and deployment boundaries in the public README.
+
 ## 0.1.26
 
 - Fix the Projects dashboard table to reference the packaged Projects list

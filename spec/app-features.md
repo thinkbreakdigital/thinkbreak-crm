@@ -129,11 +129,12 @@ The package also defines four operational table views:
 - `Project data quality` shows Projects missing `status`, `billingType`, or
   `value`.
 
-`src/page-layouts/operational-dashboard.ts` defines the preconfigured Dashboard
-page layout. Its Overview, Pipeline, and Operations tabs contain 14 widgets:
+`src/page-layouts/operational-dashboard.ts` defines the preconfigured
+Operational Dashboard page layout. Its Overview, Pipeline, and Operations tabs
+contain 14 widgets:
 
-- Four aggregate metric cards for current revenue, projected revenue, open
-  Deals, and Project data gaps.
+- Four aggregate metric cards for Current Annual Revenue, Projected Unrealized
+  Revenue, Open Deals, and Project Data Gaps.
 - Seven charts for Deal stage, Company industry, revenue trends, pipeline value,
   Deal billing type, Project billing type, and Project status. Revenue trends
   is the one line chart; the other chart items use bar or pie presentations.

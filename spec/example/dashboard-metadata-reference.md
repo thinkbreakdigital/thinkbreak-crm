@@ -14,7 +14,7 @@ must use universal identifiers instead of runtime IDs.
 
 ## Dashboard records
 
-### Operational dashboard
+### Operational Dashboard
 
 - Dashboard runtime ID: `9fc9c362-a362-4079-814d-268fcd9436c7`
 - Page-layout runtime ID: `c8dbead1-1888-4cd0-9ef5-60ddd2b533f8`
@@ -116,7 +116,7 @@ The inspected Deal stage options were `PIPELINE`, `OUTREACH`, `APPT_SET`,
 - Record filters: none
 - Record-filter groups: none
 
-## Operational dashboard page layout
+## Operational Dashboard page layout
 
 - Layout runtime ID: `c8dbead1-1888-4cd0-9ef5-60ddd2b533f8`
 - Layout universal identifier: `e6b870c6-4f89-4b4e-9d64-8b8c91a9202a`
@@ -219,7 +219,7 @@ The inspected chart widgets use `GRAPH` as the widget type. Their configurations
 use `PIE_CHART` and `BAR_CHART`. The pinned `twenty-sdk` 2.37.0 declarations
 include this combination in `PageLayoutWidgetConfiguration`.
 
-The current Operational dashboard uses valid saved-view links. Its `1` by `1`
+The current Operational Dashboard uses valid saved-view links. Its `1` by `1`
 widget dimensions differ from the `6` by `6` dimensions of both manually
 configured graph widgets.
 
@@ -244,8 +244,8 @@ The dashboard now has three active tabs. Position `2` is unused.
 ### Overview widgets
 
 - `Deals by Stage`: pie chart, Deal count grouped by `stage`, `6` by `6`.
-- `Current Revenue`: aggregate, sum of Project `annualizedValue`, filtered to
-  `status IS [ACTIVE]`, `3` by `2`.
+- `Current Annual Revenue`: aggregate, sum of Project `annualizedValue`,
+  filtered to `status IS [ACTIVE]`, `3` by `2`.
 - `Companies by Industry`: bar chart, Company count grouped by Industry,
   `6` by `6`.
 - `Open Deals`: aggregate, Deal count filtered with one
@@ -254,11 +254,11 @@ The dashboard now has three active tabs. Position `2` is unused.
   `status`, empty `billingType`, or empty `value.amountMicros`, `3` by `2`.
 - `Revenue Trends`: cumulative line chart, sum of Project `annualizedValue`
   grouped by Project `createdAt` month, `12` by `6`.
-- `Projected Revenue`: aggregate, sum of Deal `weightedValue`, filtered with
-  `stage IS_NOT [LOST, WON]`, `3` by `2`.
+- `Projected Unrealized Revenue`: aggregate, sum of Deal `weightedValue`,
+  filtered with `stage IS_NOT [LOST, WON]`, `3` by `2`.
 
-`Open Deals` excludes Pipeline deals. `Projected Revenue` does not. Preserve
-that difference only if Pipeline deals belong in projected revenue.
+`Open Deals` excludes Pipeline deals. `Projected Unrealized Revenue` does not.
+Preserve that difference only if Pipeline deals belong in projected revenue.
 
 ### Pipeline widgets
 

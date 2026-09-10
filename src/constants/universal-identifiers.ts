@@ -6,4 +6,4 @@ export const OPERATIONAL_DASHBOARD_PAGE_LAYOUT_UNIVERSAL_IDENTIFIER =
   'e6b870c6-4f89-4b4e-9d64-8b8c91a9202a';
 export const OPERATIONAL_DASHBOARD_RECORD_ID =
   '9fc9c362-a362-4079-814d-268fcd9436c7';
-export const OPERATIONAL_DASHBOARD_TITLE = 'Operational dashboard';
+export const OPERATIONAL_DASHBOARD_TITLE = 'Operational Dashboard';

@@ -38,7 +38,8 @@ that project only after this app is deployed and in daily use.
   Lost 0.
 - Package the stage mapping as a logic function, the way Project's annualized
   value is packaged. Do not leave it as workflow configuration in the UI.
-- Store a weighted Deal value for the Projected Revenue dashboard metric.
+- Store a weighted Deal value for the Projected Unrealized Revenue dashboard
+  metric.
 - Add an explicit status to Project.
 - Store Company industries as records in a custom Industry object. Do not seed
   Industry records from the app package.
@@ -96,7 +97,7 @@ the deployed model.
   Open Deals, Projects, and overdue follow-up views for record tables.
 - Neither object view has a packaged navigation menu item. The maintainer adds
   both entries in the Twenty UI and chooses their positions and icons.
-- `src/page-layouts/operational-dashboard.ts` defines the Operational dashboard
+- `src/page-layouts/operational-dashboard.ts` defines the Operational Dashboard
   layout. The app has no landing page or packaged navigation item.
 
 ### Confirmed field findings
@@ -810,8 +811,9 @@ instead of the capture's workspace runtime IDs.
 Define one `DASHBOARD` page layout with three `GRID` tabs and 14 widgets on the
 12-column grid:
 
-- Overview: Deals by Stage, Companies by Industry, Current Revenue, Projected
-  Revenue, Open Deals, Project Data Gaps, and Revenue Trends.
+- Overview: Deals by Stage, Companies by Industry, Current Annual Revenue,
+  Projected Unrealized Revenue, Open Deals, Project Data Gaps, and Revenue
+  Trends.
 - Pipeline: Pipeline Value by Stage, Deals by Stage and Billing Type, and Open
   Deals Worklist.
 - Operations: Revenue by Billing Type, Projects by Status, Projects, and
@@ -822,10 +824,10 @@ trend sizes. Use a record limit of 10 for every record table. Package the
 existing app-owned views for the Open Deals, Projects, and overdue follow-up
 tables instead of the editor-generated workspace views.
 
-Open Deals excludes Pipeline, Won, and Lost. Projected Revenue excludes Won and
-Lost but includes Pipeline. This difference is intentional: Pipeline is the
-unqualified intake stage, so it is omitted from the active-deal count and
-worklist while remaining part of total projected revenue.
+Open Deals excludes Pipeline, Won, and Lost. Projected Unrealized Revenue
+excludes Won and Lost but includes Pipeline. This difference is intentional.
+Pipeline is the unqualified intake stage, so it is omitted from the active-deal
+count and worklist while remaining part of total projected revenue.
 
 Do not repeat a field as both primary and secondary grouping. The captured
 Pipeline Value by Stage and Revenue by Billing Type widgets contained that
@@ -847,7 +849,7 @@ substitute.
 - [x] Data quality. A Project view for records missing `status`, `billingType`,
   or `value`, using `IS_EMPTY` filters in an `OR` filter group.
 - [x] Use `MetadataApiClient.getPageLayouts` to resolve the packaged layout's
-  runtime ID, then create or repair one fixed Operational dashboard Dashboard
+  runtime ID, then create or repair one fixed Operational Dashboard record
   record through `CoreApiClient`. The lookup does not include soft-deleted
   records, and the default app role has no Dashboard soft-delete permission.
   The synchronous post-install hook runs on a fresh install and each app
@@ -879,7 +881,7 @@ Then finish the Deals board:
 
 ### Acceptance criteria
 
-- [ ] A fresh installation shows one Operational dashboard in Twenty's built-in
+- [ ] A fresh installation shows one Operational Dashboard in Twenty's built-in
   Dashboard module, with the three packaged tabs and 14 widgets.
 - [x] Every dashboard widget uses a value in the installed `WidgetType` enum.
 - [x] Every dashboard widget carries an object universal identifier.
@@ -917,7 +919,7 @@ from real use rather than from this plan.
   form slugs.
 - [ ] Add the Deal and Project sidebar entries by hand in the Twenty UI. Record
   their positions and icons in `SETUP.md`.
-- [ ] Confirm that the Operational dashboard appears in Twenty's built-in
+- [ ] Confirm that the Operational Dashboard appears in Twenty's built-in
   Dashboard module. Do not add a separate sidebar entry for it.
 - [x] Document which workflows the maintainer configures in the UI after a
   deploy.

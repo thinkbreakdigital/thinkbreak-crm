@@ -203,10 +203,11 @@ trends. Pipeline reports value by stage, Deal stage by billing type, and an
 open-Deal worklist. Operations reports revenue by billing type, Projects by
 status, the Projects list, and overdue follow-ups.
 
-Open Deals excludes Pipeline, Won, and Lost. Projected Revenue excludes Won and
-Lost but includes Pipeline. Projected Revenue sums Deal `weightedValue`. Other
-revenue totals use normalized Deal `value` or Project `annualizedValue`, as
-appropriate. Record tables remain worklists and are not used as totals.
+Open Deals excludes Pipeline, Won, and Lost. Projected Unrealized Revenue
+excludes Won and Lost but includes Pipeline. Projected Unrealized Revenue sums
+Deal `weightedValue`. Other revenue totals use normalized Deal `value` or
+Project `annualizedValue`, as appropriate. Record tables remain worklists and
+are not used as totals.
 
 ## Verification
 

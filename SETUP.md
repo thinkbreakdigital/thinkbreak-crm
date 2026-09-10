@@ -73,7 +73,7 @@ pushes.
 
 If the verification workflow reports that the record is absent, run the manual
 **Repair operational dashboard** workflow. It resolves the packaged dashboard
-layout and creates or repairs only the fixed Operational dashboard record.
+layout and creates or repairs only the fixed Operational Dashboard record.
 
 Before you merge a deployable change, increase `package.json` by `0.0.1` in the
 same commit. Metadata, logic, roles, front components, page layouts, and shipped
@@ -123,7 +123,7 @@ For a new installation, skip this migration gate and create Industry records
 after installation. Later upgrades preserve them because the app package defines
 the Industry schema but does not define its records.
 
-Do not add a separate sidebar entry for the Operational dashboard. It belongs
+Do not add a separate sidebar entry for the Operational Dashboard. It belongs
 in Twenty's built-in Dashboard module. The package creates its Dashboard record
 after installation and on each app upgrade. Do not change that record's title
 or layout manually because the next upgrade restores the packaged configuration.

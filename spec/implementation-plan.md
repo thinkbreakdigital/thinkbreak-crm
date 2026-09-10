@@ -822,10 +822,13 @@ substitute.
   runtime ID, then create, restore, or repair one fixed Operational dashboard
   Dashboard record through `CoreApiClient`. The lookup includes soft-deleted
   records, so an upgrade restores the fixed record instead of trying to reuse
-  its occupied primary key. The synchronous post-install hook runs on a fresh
-  install and each app upgrade. The SDK has no `defineDashboard` entity. Do not
-  use a page-layout navigation item, create a blank Dashboard layout, or
-  identify the record by a display label alone.
+  its occupied primary key. The default app role grants Dashboard-specific
+  soft-delete permission because Twenty authorizes both restore and soft-delete
+  mutations with that permission. Global soft-delete permission remains
+  disabled. The synchronous post-install hook runs on a fresh install and each
+  app upgrade. The SDK has no `defineDashboard` entity. Do not use a page-layout
+  navigation item, create a blank Dashboard layout, or identify the record by a
+  display label alone.
 
 The hook touches one fixed Dashboard record. It creates the record when absent,
 restores it when soft-deleted, and repairs its title and layout link when they

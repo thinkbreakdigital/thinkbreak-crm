@@ -1,4 +1,4 @@
-import type { InstallPayload } from 'twenty-sdk/define';
+import { STANDARD_OBJECT, type InstallPayload } from 'twenty-sdk/define';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 const clientMocks = vi.hoisted(() => ({
@@ -25,6 +25,7 @@ import {
   OPERATIONAL_DASHBOARD_RECORD_ID,
   OPERATIONAL_DASHBOARD_TITLE,
 } from 'src/constants/universal-identifiers';
+import defaultRole from 'src/default-role';
 import { ensureOperationalDashboard } from 'src/logic-functions/ensure-operational-dashboard';
 import operationalDashboard from 'src/page-layouts/operational-dashboard';
 import activeProjects from 'src/views/active-projects';
@@ -397,5 +398,27 @@ describe('ensureOperationalDashboard', () => {
     await ensureOperationalDashboard(installPayload);
 
     expect(clientMocks.coreMutation).not.toHaveBeenCalled();
+  });
+});
+
+describe('dashboard repair permissions', () => {
+  it('allows the app to restore Dashboard records without global delete access', () => {
+    expect(defaultRole.success).toBe(true);
+    expect(defaultRole.errors).toEqual([]);
+    expect(defaultRole.config.canSoftDeleteAllObjectRecords).toBe(false);
+    expect(defaultRole.config.canDestroyAllObjectRecords).toBe(false);
+
+    const dashboardPermission = defaultRole.config.objectPermissions?.find(
+      (permission) =>
+        permission.objectUniversalIdentifier ===
+        STANDARD_OBJECT.dashboard.universalIdentifier,
+    );
+
+    expect(dashboardPermission).toMatchObject({
+      canReadObjectRecords: true,
+      canUpdateObjectRecords: true,
+      canSoftDeleteObjectRecords: true,
+      canDestroyObjectRecords: false,
+    });
   });
 });

@@ -15,8 +15,11 @@ junction pattern behind `dealContact` and `projectContact`, see
 
 `src/default-role.ts` defines the app's default role. It can read Project
 `billingType` and `value`, read Deal `stage`, and update Project
-`annualizedValue` and Deal `probability`. It cannot create, delete, destroy,
-restore, or soft-delete records.
+`annualizedValue` and Deal `probability`. It can read and update Dashboard
+records. It also has Dashboard-specific soft-delete permission because Twenty
+uses that permission for both restore and soft-delete mutations. The packaged
+hook only restores the fixed Operational dashboard record. Global soft-delete
+permission and all destroy permissions remain disabled.
 
 ## Objects
 

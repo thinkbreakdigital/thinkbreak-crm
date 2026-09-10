@@ -51,7 +51,7 @@ const gridPosition = (
 
 export default definePageLayout({
   universalIdentifier: OPERATIONAL_DASHBOARD_PAGE_LAYOUT_UNIVERSAL_IDENTIFIER,
-  name: 'Operational dashboard',
+  name: 'Operational Dashboard',
   type: PageLayoutType.DASHBOARD,
   tabs: [
     {
@@ -138,7 +138,7 @@ export default definePageLayout({
         },
         {
           universalIdentifier: 'ef049512-5fe5-4cc1-a324-749589056079',
-          title: 'Projected Revenue',
+          title: 'Projected UnrealizedRevenue',
           type: WidgetType.GRAPH,
           objectUniversalIdentifier: DEAL_OBJECT,
           position: gridPosition(6, 3, 2, 3),

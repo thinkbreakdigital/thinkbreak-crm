@@ -30,6 +30,7 @@ import operationalDashboard from 'src/page-layouts/operational-dashboard';
 import activeProjects from 'src/views/active-projects';
 import openDeals from 'src/views/open-deals';
 import overdueFollowUps from 'src/views/overdue-follow-ups';
+import projectsList from 'src/views/projects-list';
 
 const PAGE_LAYOUT_ID = 'b0af7b34-c874-489c-916e-230a60cce2bc';
 
@@ -232,7 +233,7 @@ describe('dashboard view metadata', () => {
     });
     expect(widgetByTitle('Projects')?.configuration).toMatchObject({
       configurationType: 'RECORD_TABLE',
-      viewUniversalIdentifier: 'c424e88e-c414-41e7-bcd6-37a8a4d6a701',
+      viewUniversalIdentifier: projectsList.config.universalIdentifier,
     });
     expect(widgetByTitle('Overdue Follow-ups')?.configuration).toEqual({
       configurationType: 'RECORD_TABLE',

@@ -32,7 +32,7 @@ const PROJECT_CREATED_AT_FIELD = getFieldUniversalIdentifier({
 });
 const COMPANY_INDUSTRY_FIELD = '6e2fde4a-eee5-4fb6-84fe-eaa5e1913398';
 const OPEN_DEALS_VIEW = '48120c6b-2448-4d91-83b3-11adc82a43fa';
-const PROJECTS_VIEW = 'c424e88e-c414-41e7-bcd6-37a8a4d6a701';
+const PROJECTS_VIEW = 'c424e88e-fbee-485b-8b4b-b59428c5b9c6';
 const OVERDUE_FOLLOW_UPS_VIEW = 'aea51fbe-767e-4dcd-97ad-964fa510a739';
 
 const gridPosition = (

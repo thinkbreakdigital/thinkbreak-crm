@@ -2,6 +2,13 @@
 
 All notable changes to this application are documented in this file.
 
+## 0.1.26
+
+- Fix the Projects dashboard table to reference the packaged Projects list
+  view.
+- Test the dashboard table binding against the view manifest instead of a
+  repeated identifier literal.
+
 ## 0.1.25
 
 - Replace the placeholder Operational dashboard with the captured three-tab,

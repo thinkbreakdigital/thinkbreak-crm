@@ -821,26 +821,24 @@ substitute.
 - [x] Data quality. A Project view for records missing `status`, `billingType`,
   or `value`, using `IS_EMPTY` filters in an `OR` filter group.
 - [x] Use `MetadataApiClient.getPageLayouts` to resolve the packaged layout's
-  runtime ID, then create, restore, or repair one fixed Operational dashboard
-  Dashboard record through `CoreApiClient`. The lookup includes soft-deleted
-  records, so an upgrade restores the fixed record instead of trying to reuse
-  its occupied primary key. The default app role grants Dashboard-specific
-  soft-delete permission because Twenty authorizes both restore and soft-delete
-  mutations with that permission. Global soft-delete permission remains
-  disabled. The synchronous post-install hook runs on a fresh install and each
-  app upgrade. The SDK has no `defineDashboard` entity. Do not use a page-layout
+  runtime ID, then create or repair one fixed Operational dashboard Dashboard
+  record through `CoreApiClient`. The lookup does not include soft-deleted
+  records, and the default app role has no Dashboard soft-delete permission.
+  The synchronous post-install hook runs on a fresh install and each app
+  upgrade. The SDK has no `defineDashboard` entity. Do not use a page-layout
   navigation item, create a blank Dashboard layout, or identify the record by a
   display label alone.
 
 The hook touches one fixed Dashboard record. It creates the record when absent,
-restores it when soft-deleted, and repairs its title and layout link when they
-change. It does not delete a Dashboard record. To stop future reconciliation,
-deploy a version without the hook. The Dashboard record remains until a
-maintainer removes it.
+and repairs its title and layout link when they change. It does not query,
+restore, or delete a soft-deleted Dashboard record. To stop future
+reconciliation, deploy a version without the hook. The Dashboard record remains
+until a maintainer removes it. Deleting the record can make a later upgrade fail
+when the hook tries to reuse its fixed ID.
 
 Twenty skips the post-install hook during `appDevOnce`, so CI cannot prove that
 the Dashboard record appears after a production install. Unit tests cover the
-hook's create, restore, repair, no-op, and error paths. The manual verification
+hook's create, repair, no-op, and error paths. The manual verification
 workflow checks the deployed tabs, 14 widget contracts, resolved object
 bindings, saved-view links, and Dashboard record. These checks do not prove
 visible UI behavior. Hosted UI verification remains a maintainer step.

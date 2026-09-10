@@ -32,7 +32,7 @@ export default defineApplicationRole({
       objectUniversalIdentifier: STANDARD_OBJECT.dashboard.universalIdentifier,
       canReadObjectRecords: true,
       canUpdateObjectRecords: true,
-      canSoftDeleteObjectRecords: true,
+      canSoftDeleteObjectRecords: false,
       canDestroyObjectRecords: false,
     },
   ],

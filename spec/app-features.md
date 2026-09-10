@@ -16,10 +16,7 @@ junction pattern behind `dealContact` and `projectContact`, see
 `src/default-role.ts` defines the app's default role. It can read Project
 `billingType` and `value`, read Deal `stage`, and update Project
 `annualizedValue` and Deal `probability`. It can read and update Dashboard
-records. It also has Dashboard-specific soft-delete permission because Twenty
-uses that permission for both restore and soft-delete mutations. The packaged
-hook only restores the fixed Operational dashboard record. Global soft-delete
-permission and all destroy permissions remain disabled.
+records. Dashboard soft-delete and destroy permissions remain disabled.
 
 ## Objects
 
@@ -148,14 +145,13 @@ maintainer's captured dashboard rather than placeholder 1 by 1 cells.
 
 `src/logic-functions/ensure-operational-dashboard.ts` runs after installation
 and every app upgrade. It resolves this layout through Twenty's metadata API,
-then creates, restores, or repairs one fixed Dashboard record that points to
-the layout. The function includes soft-deleted records in its lookup and
-restores the fixed record before repairing its title or layout link. That
-record appears in Twenty's built-in Dashboard module. The function does not
-delete Dashboard records.
+then creates or repairs one fixed Dashboard record that points to the layout.
+The function does not query, restore, or delete soft-deleted Dashboard records.
+Deleting that record can make a later upgrade fail when the hook tries to reuse
+its fixed ID. The active record appears in Twenty's built-in Dashboard module.
 
 Twenty skips this post-install hook during the `appDevOnce` development sync
-used by CI. Unit tests cover its create, restore, repair, no-op, and error paths.
+used by CI. Unit tests cover its create, repair, no-op, and error paths.
 A manual GitHub Actions workflow verifies the deployed layout, widgets,
 saved-view links, and Dashboard record. These checks do not prove visible Twenty
 UI behavior. The maintainer reported broken dashboard items before the current

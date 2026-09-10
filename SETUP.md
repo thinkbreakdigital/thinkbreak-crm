@@ -37,14 +37,14 @@ Install the tools needed for static checks:
 
 Run `yarn test` in CI. Its integration setup installs the app into a temporary
 Twenty workspace and generates the workspace-specific client. CI then confirms
-that the generated schema contains Project `annualizedValue` and Deal
-`probability` before it runs `yarn typecheck` for the packaged logic functions. A
-fresh-checkout typecheck uses fallback declarations, so it does not prove that
-workspace-specific fields exist. CI generates the workspace client first. It
-also creates an Industry record, syncs the app again, and confirms that the
-record survives. CI pins the Twenty server, SDK packages, and action source to
-2.37.0. The setup prints the metadata plan and refuses to apply any plan with a
-nonzero destructive-change count.
+that the generated schema contains Project `annualizedValue`, Deal `probability`,
+and Deal `weightedValue` before it runs `yarn typecheck` for the packaged logic
+functions. A fresh-checkout typecheck uses fallback declarations, so it does not
+prove that workspace-specific fields exist. CI generates the workspace client
+first. It also creates an Industry record, syncs the app again, and confirms
+that the record survives. CI pins the Twenty server, SDK packages, and action
+source to 2.37.0. The setup prints the metadata plan and refuses to apply any
+plan with a nonzero destructive-change count.
 
 ## Production deployment
 
@@ -174,20 +174,25 @@ intake automation owns its own Task-assignment policy.
 
 ## Derived values
 
-The app packages two derived-value handlers, each registered for create and
-relevant update events:
+The app packages three derived-value handlers. Each handler is registered for
+create and relevant update events:
 
 - Project `annualizedValue` runs on `project.created` and when `billingType` or
   `value` changes. It multiplies a recurring monthly amount by 12, keeps a
   singular amount unchanged, and preserves the source currency code.
 - Deal `probability` runs on `deal.created` and when `stage` changes. It maps
-  Pipeline, Outreach, Appt Set, Appt Met, Quote, Won, and Lost to 10, 20, 30,
-  50, 75, 100, and 0.
+  Pipeline, Outreach, Appt Set, Appt Met, Quote, Won, and Lost to displayed
+  percentages of 10, 20, 30, 50, 75, 100, and 0.
+- Deal `weightedValue` runs on `deal.created` and when `value` or `probability`
+  changes. It multiplies `value.amountMicros` by the stored probability ratio,
+  rounds to the nearest micro, and preserves the source currency code.
 
-Both handlers read the current record before writing. They do not write when
+The handlers read the current record before writing. They do not write when
 the stored value already matches the calculated value. An unmapped Deal stage
 stops with an error instead of writing a guessed percentage. Missing Project
-inputs clear `annualizedValue` rather than writing zero.
+inputs clear `annualizedValue` rather than writing zero. Missing Deal value or
+probability clears `weightedValue`. A probability outside 0 through 1 stops the
+weighted-value calculation.
 
 The application role can read the source fields and update only the derived
 fields. It cannot create, delete, destroy, restore, or soft-delete records.

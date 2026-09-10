@@ -58,7 +58,9 @@ jobs:
           test -f node_modules/twenty-client-sdk/dist/core/generated/schema.ts
           grep --quiet 'annualizedValue' node_modules/twenty-client-sdk/dist/core/generated/schema.ts
           grep --quiet 'probability' node_modules/twenty-client-sdk/dist/core/generated/schema.ts
+          grep --quiet 'weightedValue' node_modules/twenty-client-sdk/dist/core/generated/schema.ts
           sed -n '/^export interface DealUpdateInput/,/^}$/p' node_modules/twenty-client-sdk/dist/core/generated/schema.ts | grep --quiet 'probability'
+          sed -n '/^export interface DealUpdateInput/,/^}$/p' node_modules/twenty-client-sdk/dist/core/generated/schema.ts | grep --quiet 'weightedValue'
           sed -n '/^export interface ProjectUpdateInput/,/^}$/p' node_modules/twenty-client-sdk/dist/core/generated/schema.ts | grep --quiet 'annualizedValue'
 
       - name: Typecheck generated workspace schema

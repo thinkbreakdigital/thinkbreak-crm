@@ -37,7 +37,11 @@ type DerivedValueClient = {
     destroyProject?: { id: string };
   }>;
   query: (selection: unknown) => Promise<{
-    deal?: { id: string; probability: number | null };
+    deal?: {
+      id: string;
+      probability: number | null;
+      weightedValue: CurrencyValue | null;
+    };
     project?: { id: string; annualizedValue: CurrencyValue | null };
   }>;
 };
@@ -131,8 +135,16 @@ describe('Industry records', () => {
 });
 
 describe('Derived values', () => {
-  it('sets Deal probability after create and stage update events', async () => {
+  it('sets Deal probability and weighted value after input changes', async () => {
     const client = new CoreApiClient() as unknown as DerivedValueClient;
+    const originalValue = {
+      amountMicros: 10_000_000,
+      currencyCode: 'USD',
+    };
+    const updatedValue = {
+      amountMicros: 12_000_000,
+      currencyCode: 'USD',
+    };
     let dealId: string | undefined;
     let testError: unknown;
 
@@ -143,6 +155,7 @@ describe('Derived values', () => {
             data: {
               name: 'Integration test derived Deal',
               stage: 'OUTREACH',
+              value: originalValue,
             },
           },
           id: true,
@@ -154,25 +167,45 @@ describe('Derived values', () => {
         throw new Error('Twenty did not return the Deal created by the test.');
       }
 
-      const readProbability = async (): Promise<number | null | undefined> => {
+      const readDealDerivedValues = async (): Promise<
+        | {
+            probability: number | null;
+            weightedValue: CurrencyValue | null;
+          }
+        | undefined
+      > => {
         const result = await client.query({
           deal: {
             __args: { filter: { id: { eq: dealId } } },
             id: true,
             probability: true,
+            weightedValue: {
+              amountMicros: true,
+              currencyCode: true,
+            },
           },
         });
 
-        return result.deal?.probability;
+        return result.deal;
       };
 
-      const createdProbability = await pollForDerivedValue({
-        description: `Deal ${dealId} probability to become 0.2 after creation`,
-        read: readProbability,
-        matches: (probability) => probability === 0.2,
+      const createdDerivedValues = await pollForDerivedValue({
+        description: `Deal ${dealId} derived values to reflect its stage and value after creation`,
+        read: readDealDerivedValues,
+        matches: (deal) =>
+          deal?.probability === 0.2 &&
+          deal.weightedValue?.amountMicros === 2_000_000 &&
+          deal.weightedValue.currencyCode === 'USD',
       });
 
-      expect(createdProbability).toBe(0.2);
+      expect(createdDerivedValues).toEqual({
+        id: dealId,
+        probability: 0.2,
+        weightedValue: {
+          amountMicros: 2_000_000,
+          currencyCode: 'USD',
+        },
+      });
 
       await client.mutation({
         updateDeal: {
@@ -181,13 +214,48 @@ describe('Derived values', () => {
         },
       });
 
-      const updatedProbability = await pollForDerivedValue({
-        description: `Deal ${dealId} probability to become 0.75 after its stage update`,
-        read: readProbability,
-        matches: (probability) => probability === 0.75,
+      const stageUpdatedDerivedValues = await pollForDerivedValue({
+        description: `Deal ${dealId} derived values to reflect its updated stage`,
+        read: readDealDerivedValues,
+        matches: (deal) =>
+          deal?.probability === 0.75 &&
+          deal.weightedValue?.amountMicros === 7_500_000 &&
+          deal.weightedValue.currencyCode === 'USD',
       });
 
-      expect(updatedProbability).toBe(0.75);
+      expect(stageUpdatedDerivedValues).toEqual({
+        id: dealId,
+        probability: 0.75,
+        weightedValue: {
+          amountMicros: 7_500_000,
+          currencyCode: 'USD',
+        },
+      });
+
+      await client.mutation({
+        updateDeal: {
+          __args: { id: dealId, data: { value: updatedValue } },
+          id: true,
+        },
+      });
+
+      const valueUpdatedDerivedValues = await pollForDerivedValue({
+        description: `Deal ${dealId} weighted value to reflect its updated value`,
+        read: readDealDerivedValues,
+        matches: (deal) =>
+          deal?.probability === 0.75 &&
+          deal.weightedValue?.amountMicros === 9_000_000 &&
+          deal.weightedValue.currencyCode === 'USD',
+      });
+
+      expect(valueUpdatedDerivedValues).toEqual({
+        id: dealId,
+        probability: 0.75,
+        weightedValue: {
+          amountMicros: 9_000_000,
+          currencyCode: 'USD',
+        },
+      });
     } catch (error) {
       testError = error;
       throw error;

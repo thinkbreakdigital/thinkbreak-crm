@@ -193,6 +193,7 @@ object through the linked saved view.
 
 - Deal object: `cca977ba-ccd0-4734-892d-ae53118d9d34`
 - Deal `stage`: `bc9ce40a-1bd4-45cd-a391-b67dd59b3563`
+- Deal `weightedValue`: `71c1f015-60de-4a63-bc54-5be3218da742`
 - Company `industry`: `6e2fde4a-eee5-4fb6-84fe-eaa5e1913398`
 - Project object: `c3ad642e-8d67-491c-99c2-deddbe39f173`
 - Project `status`: `e00ad7cd-a0ae-47d3-87ca-79cc9f9f2a1d`
@@ -253,7 +254,7 @@ The dashboard now has three active tabs. Position `2` is unused.
   `status`, empty `billingType`, or empty `value.amountMicros`, `3` by `2`.
 - `Revenue Trends`: cumulative line chart, sum of Project `annualizedValue`
   grouped by Project `createdAt` month, `12` by `6`.
-- `Projected Revenue`: aggregate, sum of Deal `value`, filtered with
+- `Projected Revenue`: aggregate, sum of Deal `weightedValue`, filtered with
   `stage IS_NOT [LOST, WON]`, `3` by `2`.
 
 `Open Deals` excludes Pipeline deals. `Projected Revenue` does not. Preserve

@@ -19,6 +19,7 @@ const DEAL_NAME_FIELD = '3c4b4a54-a187-437d-86b5-b7afc86292c5';
 const DEAL_STAGE_FIELD = 'bc9ce40a-1bd4-45cd-a391-b67dd59b3563';
 const DEAL_BILLING_TYPE_FIELD = 'd62cb047-c4be-409c-9d0a-c9c9a59fac11';
 const DEAL_VALUE_FIELD = 'dc9c7c49-f860-4a47-a7ba-8723067fda5a';
+const DEAL_WEIGHTED_VALUE_FIELD = '71c1f015-60de-4a63-bc54-5be3218da742';
 const PROJECT_OBJECT = 'c3ad642e-8d67-491c-99c2-deddbe39f173';
 const PROJECT_NAME_FIELD = '33391310-8078-48f2-ace9-2d41d6e75100';
 const PROJECT_STATUS_FIELD = 'e00ad7cd-a0ae-47d3-87ca-79cc9f9f2a1d';
@@ -143,7 +144,7 @@ export default definePageLayout({
           position: gridPosition(6, 3, 2, 3),
           configuration: {
             configurationType: 'AGGREGATE_CHART',
-            aggregateFieldMetadataUniversalIdentifier: DEAL_VALUE_FIELD,
+            aggregateFieldMetadataUniversalIdentifier: DEAL_WEIGHTED_VALUE_FIELD,
             aggregateOperation: AggregateOperations.SUM,
             prefix: '$',
             numberFormat: 'FULL',

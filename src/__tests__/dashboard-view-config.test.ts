@@ -232,6 +232,8 @@ describe('dashboard view metadata', () => {
     });
     expect(widgetByTitle('Projected Revenue')?.configuration).toMatchObject({
       configurationType: 'AGGREGATE_CHART',
+      aggregateFieldMetadataUniversalIdentifier:
+        '71c1f015-60de-4a63-bc54-5be3218da742',
       aggregateOperation: 'SUM',
       filter: {
         recordFilters: [{ operand: 'IS_NOT', value: '["LOST","WON"]' }],

@@ -38,7 +38,7 @@ that project only after this app is deployed and in daily use.
   Lost 0.
 - Package the stage mapping as a logic function, the way Project's annualized
   value is packaged. Do not leave it as workflow configuration in the UI.
-- Do not add weighted pipeline calculations in this release.
+- Store a weighted Deal value for the Projected Revenue dashboard metric.
 - Add an explicit status to Project.
 - Store Company industries as records in a custom Industry object. Do not seed
   Industry records from the app package.
@@ -81,8 +81,8 @@ the deployed model.
 - Person is a standard Twenty object. The app adds the inverse primary-contact
   and junction relations.
 - Deal is a custom object. It has `stage`, `dealType`, `billingType`, `value`,
-  `probability`, `leadSource`, `intakeSubmissionId`, Company and Person
-  relations, and contact junctions.
+  `probability`, `weightedValue`, `leadSource`, `intakeSubmissionId`, Company
+  and Person relations, and contact junctions.
 - Project is a custom object. It has `billingType`, `status`, `value`,
   `annualizedValue`, dates, Company and Person relations, and contact junctions.
 - `dealContact` and `projectContact` are junction objects. They give Deal and
@@ -104,7 +104,8 @@ the deployed model.
 - Company has `clientStatus` with Prospect, Client, and Former Client.
 - Company has a nullable `industry` relation. The package defines no Industry
   records, so workspace-created industries remain record data across upgrades.
-- Deal has lead attribution and a stage-derived probability.
+- Deal has lead attribution, a stage-derived probability, and a derived
+  weighted value.
 - Deal `value` stores an estimated annual value.
 - Project `value` stores a monthly amount for Recurring projects and a full
   contract amount for Singular projects. Project also has a status and a stored
@@ -405,6 +406,9 @@ needs no rounding rule.
 
 - [x] Add `probability` as a nullable NUMBER field, displayed as a percentage,
   that stores the Deal's current stage value.
+- [x] Add `weightedValue` as a nullable CURRENCY field derived from `value` and
+  `probability`.
+- [x] Do not edit `weightedValue` manually.
 - [x] Add `leadSource` as a SELECT field.
 - [x] Ship Website Form (`WEBSITE_FORM`), Manual (`MANUAL`), Business Card
   (`BUSINESS_CARD`), and Other (`OTHER`) as the initial Lead Source options.
@@ -422,7 +426,17 @@ needs no rounding rule.
 
 Keep `probability` as a NUMBER, displayed as a percentage. A packaged logic function updates it when
 `stage` changes. The field stores the stage probability for filtering and
-display. This release does not calculate or store a weighted Deal value.
+display.
+
+Keep `weightedValue` as a CURRENCY field. A packaged logic function applies
+these rules:
+
+- Set `weightedValue.amountMicros` to `Math.round(value.amountMicros * probability)`.
+- Copy `value.currencyCode` into `weightedValue.currencyCode`.
+- If `value` or `probability` is empty, set `weightedValue` to empty.
+- Accept probability ratios from 0 through 1, including both boundaries.
+- Stop with an actionable error for a probability outside that range.
+- Recalculate after `value` or `probability` changes.
 
 `intakeSubmissionId` carries idempotency, so it needs an index and a uniqueness
 constraint. Manual Deal entry does not use the field. An external integration
@@ -453,9 +467,10 @@ treat that recalibration as a change to the mapping in source.
 
 Adding or renaming a stage means editing the mapping in the same change.
 
-Field metadata cannot enforce the 0 through 100 range. The mapping is a constant
+Field metadata cannot enforce the 0 through 1 ratio range. The mapping is a constant
 in source, the unit tests cover every stage, and nothing else writes the field.
-Do not use `probability` for forecasting calculations in this release.
+Use `probability` to calculate `weightedValue`. Dashboard forecasting sums the
+stored currency field instead of applying a formula inside the widget.
 
 ### Add Task idempotency metadata
 
@@ -478,16 +493,17 @@ without relying on an editable title.
 
 ### Add calculation logic
 
-Two packaged logic functions maintain derived values: Project `annualizedValue`
-and Deal `probability`. Neither needs workflow configuration in the Twenty UI.
+Three packaged logic handlers maintain derived values: Project `annualizedValue`,
+Deal `probability`, and Deal `weightedValue`. None needs workflow configuration
+in the Twenty UI.
 `defineLogicFunction` accepts `databaseEventTriggerSettings`, and `CoreApiClient`
 from `twenty-client-sdk/core` performs the record read and write.
 
 Deal probability is a lookup rather than a calculation, but it belongs in source
 for the same reason the Project formula does. A mapping clicked into the Twenty
 UI is invisible to code review, absent from the unit tests, and gone after a
-workspace rebuild. Both functions share one trigger pattern, one equality guard,
-and one test file.
+workspace rebuild. The weighted-value handler follows the same record read,
+calculation, equality guard, and record update pattern.
 
 The installed SDK fallback lets imports of `CoreApiClient` typecheck with
 `query` and `mutation` typed as `any`. That result is not a meaningful schema
@@ -499,14 +515,16 @@ In CI, keep the current integration-test setup that runs `appDevOnce`. A
 successful sync generates the client from the installed test-workspace schema.
 Run CI typecheck after the integration tests, not before them. Add a guard that
 fails if the generated schema does not contain Project `annualizedValue` and
-Deal `probability`. Do not commit generated SDK files and do not weaken the
-custom-object boundary to `any`.
+Deal `probability`, and Deal `weightedValue`. Do not commit generated SDK files
+and do not weaken the custom-object boundary to `any`.
 
 - [ ] Scaffold each function with `yarn twenty dev:add logicFunction`.
 - [x] Trigger the Project function on `project.created` and on
   `project.updated` scoped to `updatedFields: ['billingType', 'value']`.
 - [x] Trigger the Deal function on `deal.created` and on `deal.updated` scoped to
   `updatedFields: ['stage']`.
+- [x] Trigger the Deal weighted-value function on `deal.created` and on
+  `deal.updated` scoped to `updatedFields: ['probability', 'value']`.
 - [x] Keep the stage mapping in one exported constant that the function and its
   tests both import.
 - [x] Stop with an actionable error on a stage that the mapping does not cover.
@@ -519,7 +537,8 @@ custom-object boundary to `any`.
   or partial value.
 - [x] Move the CI typecheck step after the integration-test step.
 - [x] Verify that CI typecheck uses a generated schema containing Project
-  `annualizedValue` and Deal `probability`, not the fallback declarations.
+  `annualizedValue`, Deal `probability`, and Deal `weightedValue`, not the
+  fallback declarations.
 - [x] Document each function, its trigger, and its failure modes in `SETUP.md`.
 
 Writing a derived field raises the same object's update event again, so either
@@ -532,9 +551,10 @@ Define the packaged function before finalizing its role. Scope permissions to
 the objects and fields it actually reads or updates.
 
 - [x] Use `objectPermissions` and `fieldPermissions` in `RoleConfig`.
-- [x] Grant read access to the Project source fields and to Deal `stage`.
-- [x] Grant update access only to Project `annualizedValue` and Deal
-  `probability` if Twenty accepts that field-level restriction.
+- [x] Grant read access to the Project source fields and to the Deal calculation
+  inputs.
+- [x] Grant update access only to Project `annualizedValue`, Deal `probability`,
+  and Deal `weightedValue` if Twenty accepts that field-level restriction.
 - [x] Do not grant create, delete, destroy, restore, or soft-delete permissions.
 - [ ] Confirm the exact role diff in the CI plan output.
 
@@ -550,6 +570,8 @@ This applies to the deployed workspace, not to the packaged app.
   fields.
 - [ ] Backfill Deal `probability` by touching each Deal so the packaged function
   writes it, or with a one-off script that imports the same mapping constant.
+- [ ] Backfill Deal `weightedValue` only after the maintainer approves the live
+  data change. Reuse the packaged calculation and report every affected Deal.
 
 ### Acceptance criteria
 
@@ -559,6 +581,8 @@ This applies to the deployed workspace, not to the packaged app.
   probability.
 - [ ] Project `annualizedValue` matches the formula in this plan, computed in
   `amountMicros`.
+- [ ] Deal `weightedValue` equals Est. Annual Value multiplied by the probability
+  ratio, rounded to the nearest micro.
 - [ ] A missing source value cannot produce a misleading zero.
 - [ ] Existing live records retain their business values.
 - [ ] The application role cannot delete records.
@@ -570,6 +594,8 @@ This applies to the deployed workspace, not to the packaged app.
   Assert on `amountMicros` integers, not on display amounts.
 - [x] Add a unit test that asserts the probability for all seven stages and a
   stop for an unknown stage value.
+- [x] Add unit tests for weighted values at 0, 20, 90, and 100 percent, missing
+  inputs, rounding, and invalid probability ratios.
 - [ ] Have the maintainer move one Deal through two stages in the workspace and
   confirm that `probability` follows.
 - [ ] Add a test that the calculation is idempotent. Running it twice on the same
@@ -986,7 +1012,8 @@ Do not reopen these decisions without new evidence:
   rules.
 - A derived CURRENCY field inherits `currencyCode` from its source.
 - Deal `probability` stays a plain NUMBER that a packaged logic function fills
-  from the stage mapping in source. Defer weighted pipeline calculations.
+  from the stage mapping in source. Deal `weightedValue` is a derived CURRENCY
+  field that multiplies Est. Annual Value by that probability ratio.
 - Deal probability stores a ratio and displays it as a percentage. The stage mapping
   is Pipeline 0.1, Outreach 0.2, Appt Set 0.3, Appt Met 0.5, Quote 0.75, Won 1,
   and Lost 0. Recalibrate from measured win rates, not from opinion.

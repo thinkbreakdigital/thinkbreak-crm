@@ -51,6 +51,7 @@ An app package cannot do that for you.
 | `billingType` | SELECT | Recurring, Singular |
 | `value` | CURRENCY | Labelled Est. Annual Value; see Value and dashboard reporting below |
 | `probability` | NUMBER | Stored as a ratio and displayed as a percentage. Derived from `stage`; 0.1, 0.2, 0.3, 0.5, 0.75, 1, or 0 |
+| `weightedValue` | CURRENCY | Derived from `value` and `probability`; do not edit manually |
 | `leadSource` | SELECT | Website Form, Manual, Business Card, Other |
 | `intakeSubmissionId` | TEXT | Nullable, unique external idempotency key |
 | `company` | RELATION | MANY_TO_ONE to `company` |
@@ -91,8 +92,10 @@ no formula or rollup option; every `value` field is a plain number someone types
 - Deal's `value` is labelled Est. Annual Value. It always holds a rough, normalized
   annual estimate, whatever the deal's `billingType`: for a recurring deal, estimate
   the annualized recurring revenue; for a singular deal, estimate the one-time amount.
-  A pipeline dashboard can sum this field directly, since every row is already in the
-  same annual unit.
+  The derived `weightedValue` multiplies `value.amountMicros` by the stored
+  `probability` ratio, rounds to the nearest micro, and preserves the source currency
+  code. A missing input leaves `weightedValue` empty. A probability outside 0 through
+  1 stops the calculation instead of producing a misleading amount.
 - Project's `value` keeps the plain Value label, and its unit depends on `billingType`:
   for a recurring project it is the monthly retainer amount actually billed, and for a
   singular project it is the total one-time contract amount. A dashboard that sums
@@ -201,9 +204,9 @@ open-Deal worklist. Operations reports revenue by billing type, Projects by
 status, the Projects list, and overdue follow-ups.
 
 Open Deals excludes Pipeline, Won, and Lost. Projected Revenue excludes Won and
-Lost but includes Pipeline. Revenue totals use normalized Deal `value` or
-Project `annualizedValue`, as appropriate. Record tables remain worklists and
-are not used as totals.
+Lost but includes Pipeline. Projected Revenue sums Deal `weightedValue`. Other
+revenue totals use normalized Deal `value` or Project `annualizedValue`, as
+appropriate. Record tables remain worklists and are not used as totals.
 
 ## Verification
 

@@ -14,9 +14,10 @@ junction pattern behind `dealContact` and `projectContact`, see
   the Twenty platform for potential clients.
 
 `src/default-role.ts` defines the app's default role. It can read Project
-`billingType` and `value`, read Deal `stage`, and update Project
-`annualizedValue` and Deal `probability`. It can read and update Dashboard
-records. Dashboard soft-delete and destroy permissions remain disabled.
+`billingType` and `value`, read the Deal calculation inputs, and update Project
+`annualizedValue`, Deal `probability`, and Deal `weightedValue`. It can read and
+update Dashboard records. Dashboard soft-delete and destroy permissions remain
+disabled.
 
 ## Objects
 
@@ -64,6 +65,7 @@ fields beyond `name`:
 | `billingType` | SELECT | Recurring, Singular |
 | `value` | CURRENCY | Labelled Est. Annual Value; always a normalized annual estimate, regardless of `billingType` |
 | `probability` | NUMBER | Stored as a ratio and displayed as a percentage. Derived from `stage`: 0.1, 0.2, 0.3, 0.5, 0.75, 1, or 0 |
+| `weightedValue` | CURRENCY | `value` multiplied by `probability`, rounded to the nearest micro; do not edit manually |
 | `leadSource` | SELECT | Website Form, Manual, Business Card, Other |
 | `intakeSubmissionId` | TEXT | Nullable, unique external idempotency key |
 | `company` | RELATION | Many-to-one to Company |
@@ -166,10 +168,13 @@ in the Twenty UI, and sets its position and icon there.
 `src/logic-functions/update-project-annualized-value*.ts` maintains Project
 `annualizedValue` when a Project is created or its billing inputs change.
 `src/logic-functions/update-deal-probability*.ts` maintains Deal `probability`
-when a Deal is created or its stage changes. Both skip writes when the stored
-value already matches the result. Unit tests cover the pure calculations. CI
-integration tests create and update both record types, then wait for the
-database-event handlers to write the expected values.
+when a Deal is created or its stage changes.
+`src/logic-functions/update-deal-weighted-value*.ts` maintains Deal
+`weightedValue` when a Deal is created or its `value` or `probability` changes.
+The handlers skip writes when the stored value already matches the result. Unit
+tests cover the pure calculations. CI integration tests create and update both
+record types, then wait for the database-event handlers to write the expected
+values.
 
 ## Not defined
 

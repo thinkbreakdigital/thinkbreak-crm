@@ -35,3 +35,21 @@ export function calculateDealProbability(stage: string | null | undefined): numb
   }
   throw new Error(`Cannot calculate Deal probability for unmapped stage "${stage}".`);
 }
+
+export function calculateDealWeightedValue(
+  probability: number | null | undefined,
+  value: CurrencyValue | null | undefined,
+): CurrencyValue | null {
+  if (!value || probability === null || probability === undefined) return null;
+
+  if (!Number.isFinite(probability) || probability < 0 || probability > 1) {
+    throw new Error(
+      `Cannot calculate Deal weighted value for probability "${probability}". Expected a ratio from 0 through 1.`,
+    );
+  }
+
+  return {
+    amountMicros: Math.round(value.amountMicros * probability),
+    currencyCode: value.currencyCode,
+  };
+}

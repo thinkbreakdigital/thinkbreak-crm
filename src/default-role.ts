@@ -67,5 +67,17 @@ export default defineApplicationRole({
       canReadFieldValue: true,
       canUpdateFieldValue: true,
     },
+    {
+      objectUniversalIdentifier: 'cca977ba-ccd0-4734-892d-ae53118d9d34',
+      fieldUniversalIdentifier: 'dc9c7c49-f860-4a47-a7ba-8723067fda5a',
+      canReadFieldValue: true,
+      canUpdateFieldValue: false,
+    },
+    {
+      objectUniversalIdentifier: 'cca977ba-ccd0-4734-892d-ae53118d9d34',
+      fieldUniversalIdentifier: '71c1f015-60de-4a63-bc54-5be3218da742',
+      canReadFieldValue: true,
+      canUpdateFieldValue: true,
+    },
   ],
 });

@@ -814,6 +814,8 @@ substitute.
   update date.
 - [x] Active Projects. A Project view filtered to status Active, sorted by
   `annualizedValue` descending. Show the USD annualized value.
+- [x] Projects list. An unfiltered Project view with Name, Status, Billing type,
+  and Annualized value columns for the Operations dashboard record table.
 - [x] Overdue follow-ups. A Task view for incomplete Tasks whose due date is in
   the past.
 - [x] Data quality. A Project view for records missing `status`, `billingType`,

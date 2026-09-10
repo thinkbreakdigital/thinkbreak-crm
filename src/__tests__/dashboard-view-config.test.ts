@@ -56,6 +56,36 @@ describe('dashboard view metadata', () => {
     expect(overdueFollowUps.config.filters?.[1]?.value).toBe('');
   });
 
+  it('defines visible columns for the Projects dashboard table', () => {
+    expect(projectsList.success).toBe(true);
+    expect(projectsList.errors).toEqual([]);
+    expect(
+      projectsList.config.fields?.map(
+        ({ fieldMetadataUniversalIdentifier, position }) => ({
+          fieldMetadataUniversalIdentifier,
+          position,
+        }),
+      ),
+    ).toEqual([
+      {
+        fieldMetadataUniversalIdentifier: '33391310-8078-48f2-ace9-2d41d6e75100',
+        position: 0,
+      },
+      {
+        fieldMetadataUniversalIdentifier: 'e00ad7cd-a0ae-47d3-87ca-79cc9f9f2a1d',
+        position: 1,
+      },
+      {
+        fieldMetadataUniversalIdentifier: '3dd3080b-ef78-4602-b69c-86f1d5781f88',
+        position: 2,
+      },
+      {
+        fieldMetadataUniversalIdentifier: '2a61fee5-e886-4351-a420-e5e271c7cd75',
+        position: 3,
+      },
+    ]);
+  });
+
   it('defines the captured three-tab operational dashboard', () => {
     expect(operationalDashboard.success).toBe(true);
     expect(operationalDashboard.errors).toEqual([]);

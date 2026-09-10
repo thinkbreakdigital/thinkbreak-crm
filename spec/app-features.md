@@ -117,7 +117,9 @@ Deal or a Project to more than one Person. Both objects set
 by `stage`, with one column per stage in the same order as the field's
 options. It displays the stage-derived `probability` field.
 
-`src/views/projects-list.ts` defines Projects list, a table view on Project.
+`src/views/projects-list.ts` defines Projects list, an unfiltered table view on
+Project. It displays Name, Status, Billing type, and Annualized value. The
+Operations dashboard embeds this view in its Projects record table.
 
 The package also defines four operational table views:
 

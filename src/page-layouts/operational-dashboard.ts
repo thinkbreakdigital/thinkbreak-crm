@@ -108,7 +108,7 @@ export default definePageLayout({
         },
         {
           universalIdentifier: '4e9cd6d2-c687-481e-970a-cdd01f48d574',
-          title: 'Current Revenue',
+          title: 'Current Annual Revenue',
           type: WidgetType.GRAPH,
           objectUniversalIdentifier: PROJECT_OBJECT,
           position: gridPosition(6, 0, 2, 3),
@@ -138,7 +138,7 @@ export default definePageLayout({
         },
         {
           universalIdentifier: 'ef049512-5fe5-4cc1-a324-749589056079',
-          title: 'Projected UnrealizedRevenue',
+          title: 'Projected Unrealized Revenue',
           type: WidgetType.GRAPH,
           objectUniversalIdentifier: DEAL_OBJECT,
           position: gridPosition(6, 3, 2, 3),

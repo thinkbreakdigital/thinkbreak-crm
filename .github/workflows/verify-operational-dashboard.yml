@@ -49,6 +49,7 @@ jobs:
                     universalIdentifier
                     title
                     type
+                    objectMetadataId
                     isActive
                     deletedAt
                     position {
@@ -73,6 +74,22 @@ jobs:
                         configurationType
                         viewId
                         recordLimit
+                      }
+                      ... on AggregateChartConfiguration {
+                        configurationType
+                        aggregateOperation
+                      }
+                      ... on PieChartConfiguration {
+                        configurationType
+                        aggregateOperation
+                      }
+                      ... on BarChartConfiguration {
+                        configurationType
+                        aggregateOperation
+                      }
+                      ... on LineChartConfiguration {
+                        configurationType
+                        aggregateOperation
                       }
                     }
                   }
@@ -154,54 +171,157 @@ jobs:
             const activeTabs = layout.tabs.filter(
               (tab) => tab.isActive !== false && tab.deletedAt == null,
             );
-            if (activeTabs.length !== 1) {
+            if (activeTabs.length !== 3) {
               throw new Error(
-                `Expected one active Operational dashboard tab, found ${activeTabs.length}.`,
+                `Expected three active Operational dashboard tabs, found ${activeTabs.length}.`,
               );
             }
 
-            const tab = activeTabs[0];
-            if (
-              tab.universalIdentifier !== 'b38f26fe-d6a2-4483-9f63-1f871569072e' ||
-              tab.title !== 'Overview' ||
-              tab.position !== 0 ||
-              tab.layoutMode !== 'GRID'
-            ) {
-              throw new Error(`Operational dashboard tab metadata did not match: ${JSON.stringify(tab)}.`);
-            }
-            if (!Array.isArray(tab.widgets)) {
-              throw new Error('Twenty Metadata API did not expose page layout widgets.');
+            const expectedTabs = [
+              {
+                universalIdentifier: 'b38f26fe-d6a2-4483-9f63-1f871569072e',
+                title: 'Overview',
+                position: 0,
+              },
+              {
+                universalIdentifier: '513e5bc0-7c24-4551-823f-a3aee2d8a454',
+                title: 'Pipeline',
+                position: 1,
+              },
+              {
+                universalIdentifier: '5421481d-5b3f-4639-8f05-2d851309dce1',
+                title: 'Operations',
+                position: 2,
+              },
+            ];
+            for (const expected of expectedTabs) {
+              const tab = activeTabs.find(
+                (candidate) => candidate.universalIdentifier === expected.universalIdentifier,
+              );
+              if (
+                !tab ||
+                tab.title !== expected.title ||
+                tab.position !== expected.position ||
+                tab.layoutMode !== 'GRID'
+              ) {
+                throw new Error(
+                  `Operational dashboard tab ${expected.title} did not match: ${JSON.stringify(tab)}.`,
+                );
+              }
             }
 
             const expectedWidgets = [
               {
-                universalIdentifier: '1b145e2f-dd15-43e5-a8a0-c388f72a92c1',
+                title: 'Deals by Stage',
+                type: 'GRAPH',
+                configurationType: 'PIE_CHART',
+                aggregateOperation: 'COUNT',
+                position: { row: 0, column: 0, rowSpan: 6, columnSpan: 6 },
+              },
+              {
+                title: 'Companies by Industry',
+                type: 'GRAPH',
+                configurationType: 'BAR_CHART',
+                aggregateOperation: 'COUNT',
+                position: { row: 0, column: 6, rowSpan: 6, columnSpan: 6 },
+              },
+              {
+                title: 'Current Revenue',
+                type: 'GRAPH',
+                configurationType: 'AGGREGATE_CHART',
+                aggregateOperation: 'SUM',
+                position: { row: 6, column: 0, rowSpan: 2, columnSpan: 3 },
+              },
+              {
+                title: 'Projected Revenue',
+                type: 'GRAPH',
+                configurationType: 'AGGREGATE_CHART',
+                aggregateOperation: 'SUM',
+                position: { row: 6, column: 3, rowSpan: 2, columnSpan: 3 },
+              },
+              {
                 title: 'Open Deals',
+                type: 'GRAPH',
+                configurationType: 'AGGREGATE_CHART',
+                aggregateOperation: 'COUNT',
+                position: { row: 6, column: 6, rowSpan: 2, columnSpan: 3 },
+              },
+              {
+                title: 'Project Data Gaps',
+                type: 'GRAPH',
+                configurationType: 'AGGREGATE_CHART',
+                aggregateOperation: 'COUNT',
+                position: { row: 6, column: 9, rowSpan: 2, columnSpan: 3 },
+              },
+              {
+                title: 'Revenue Trends',
+                type: 'GRAPH',
+                configurationType: 'LINE_CHART',
+                aggregateOperation: 'SUM',
+                position: { row: 8, column: 0, rowSpan: 6, columnSpan: 12 },
+              },
+              {
+                title: 'Pipeline Value by Stage',
+                type: 'GRAPH',
+                configurationType: 'BAR_CHART',
+                aggregateOperation: 'SUM',
+                position: { row: 0, column: 0, rowSpan: 6, columnSpan: 6 },
+              },
+              {
+                title: 'Deals by Stage and Billing Type',
+                type: 'GRAPH',
+                configurationType: 'BAR_CHART',
+                aggregateOperation: 'COUNT',
+                position: { row: 0, column: 6, rowSpan: 6, columnSpan: 6 },
+              },
+              {
+                title: 'Open Deals Worklist',
+                type: 'RECORD_TABLE',
+                configurationType: 'RECORD_TABLE',
                 viewUniversalIdentifier: '48120c6b-2448-4d91-83b3-11adc82a43fa',
-                position: { row: 0, column: 0, rowSpan: 1, columnSpan: 1 },
+                recordLimit: 10,
+                position: { row: 6, column: 0, rowSpan: 6, columnSpan: 12 },
               },
               {
-                universalIdentifier: '4e9cd6d2-c687-481e-970a-cdd01f48d574',
-                title: 'Active Projects',
-                viewUniversalIdentifier: '532b5e98-8ce9-46dd-9e78-53fe9f58e83b',
-                position: { row: 0, column: 1, rowSpan: 1, columnSpan: 1 },
+                title: 'Revenue by Billing Type',
+                type: 'GRAPH',
+                configurationType: 'BAR_CHART',
+                aggregateOperation: 'SUM',
+                position: { row: 0, column: 0, rowSpan: 6, columnSpan: 6 },
               },
               {
-                universalIdentifier: '9362c0bf-5d94-441f-9bd0-2e0f2a8de7c4',
-                title: 'Overdue follow-ups',
+                title: 'Projects by Status',
+                type: 'GRAPH',
+                configurationType: 'PIE_CHART',
+                aggregateOperation: 'COUNT',
+                position: { row: 0, column: 6, rowSpan: 6, columnSpan: 6 },
+              },
+              {
+                title: 'Projects',
+                type: 'RECORD_TABLE',
+                configurationType: 'RECORD_TABLE',
+                viewUniversalIdentifier: 'c424e88e-c414-41e7-bcd6-37a8a4d6a701',
+                recordLimit: 10,
+                position: { row: 6, column: 0, rowSpan: 6, columnSpan: 12 },
+              },
+              {
+                title: 'Overdue Follow-ups',
+                type: 'RECORD_TABLE',
+                configurationType: 'RECORD_TABLE',
                 viewUniversalIdentifier: 'aea51fbe-767e-4dcd-97ad-964fa510a739',
-                position: { row: 1, column: 0, rowSpan: 1, columnSpan: 1 },
-              },
-              {
-                universalIdentifier: '35b659a8-69a3-49c2-8b44-edf8e451eb5b',
-                title: 'Data quality',
-                viewUniversalIdentifier: 'eab1d547-2f91-4f8d-a555-3bf84d674dd9',
-                position: { row: 1, column: 1, rowSpan: 1, columnSpan: 1 },
+                recordLimit: 10,
+                position: { row: 12, column: 0, rowSpan: 6, columnSpan: 12 },
               },
             ];
-            const activeWidgets = tab.widgets.filter(
-              (widget) => widget.isActive !== false && widget.deletedAt == null,
-            );
+            const activeWidgets = activeTabs.flatMap((tab) => {
+              if (!Array.isArray(tab.widgets)) {
+                throw new Error(`Twenty Metadata API did not expose widgets for ${tab.title}.`);
+              }
+
+              return tab.widgets.filter(
+                (widget) => widget.isActive !== false && widget.deletedAt == null,
+              );
+            });
 
             if (activeWidgets.length !== expectedWidgets.length) {
               throw new Error(
@@ -219,15 +339,10 @@ jobs:
 
             for (const expected of expectedWidgets) {
               const widget = activeWidgets.find(
-                (candidate) => candidate.universalIdentifier === expected.universalIdentifier,
+                (candidate) => candidate.title === expected.title,
               );
               if (!widget) {
                 throw new Error(`Dashboard widget ${expected.title} was not found.`);
-              }
-
-              const runtimeView = viewsByUniversalIdentifier.get(expected.viewUniversalIdentifier);
-              if (!runtimeView) {
-                throw new Error(`Packaged view for ${expected.title} was not found.`);
               }
 
               const position = widget.position?.__typename === 'PageLayoutWidgetGridPosition'
@@ -243,16 +358,34 @@ jobs:
 
               if (
                 widget.title !== expected.title ||
-                widget.type !== 'RECORD_TABLE' ||
+                widget.type !== expected.type ||
+                !widget.objectMetadataId ||
                 !positionMatches ||
-                configuration?.__typename !== 'RecordTableConfiguration' ||
-                configuration.configurationType !== 'RECORD_TABLE' ||
-                configuration.recordLimit !== 10 ||
-                configuration.viewId !== runtimeView.id
+                configuration?.configurationType !== expected.configurationType ||
+                (expected.aggregateOperation &&
+                  configuration.aggregateOperation !== expected.aggregateOperation)
               ) {
                 throw new Error(
                   `Dashboard widget ${expected.title} metadata did not match: ${JSON.stringify(widget)}.`,
                 );
+              }
+
+              if (expected.viewUniversalIdentifier) {
+                const runtimeView = viewsByUniversalIdentifier.get(
+                  expected.viewUniversalIdentifier,
+                );
+                if (!runtimeView) {
+                  throw new Error(`Packaged view for ${expected.title} was not found.`);
+                }
+                if (
+                  configuration.__typename !== 'RecordTableConfiguration' ||
+                  configuration.viewId !== runtimeView.id ||
+                  configuration.recordLimit !== expected.recordLimit
+                ) {
+                  throw new Error(
+                    `Record table ${expected.title} did not resolve its packaged view: ${JSON.stringify(widget)}.`,
+                  );
+                }
               }
             }
 

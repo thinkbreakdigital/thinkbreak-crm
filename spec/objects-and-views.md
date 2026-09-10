@@ -181,22 +181,29 @@ CLAUDE.md: the maintainer adds sidebar entries by hand.
 
 ## Package operational worklists
 
-The package defines four table views for the operational dashboard. `Open
-Deals` excludes Won and Lost Deals and sorts by the latest update. `Active
+The package defines four operational table views. `Open Deals` excludes
+Pipeline, Won, and Lost Deals and sorts by the latest update. `Active
 Projects` filters to Active Projects, sorts by `annualizedValue` descending,
 and shows the annualized USD value. `Overdue follow-ups` filters incomplete
 Tasks whose due date is in the past. `Project data quality` uses an OR group of
 `IS_EMPTY` filters for `status`, `billingType`, and `value`.
 
-`operational-dashboard.ts` packages these views in a Dashboard page layout with
-one grid tab. Each `RECORD_TABLE` widget has a record limit of 10. The tables
-are worklists, not aggregate reports. Do not present their truncated rows or
-table footers as revenue or count metrics.
+`operational-dashboard.ts` packages a three-tab, 14-widget Dashboard page
+layout. Native chart widgets use `WidgetType.GRAPH` with aggregate, pie, bar,
+or line configurations. Each chart names its object and fields through
+universal identifiers. The three `RECORD_TABLE` widgets also name a packaged
+view and use a record limit of 10.
 
-The current SDK cannot package aggregate chart widgets. Keep current revenue,
-projected revenue, Deal counts, lead-source mix, billing-type revenue, and
-kanban column totals out of the dashboard until a supported widget and CI
-validation are available.
+The Overview tab reports current revenue, projected revenue, open Deals,
+Project data gaps, Deal stages, Company industries, and cumulative revenue
+trends. Pipeline reports value by stage, Deal stage by billing type, and an
+open-Deal worklist. Operations reports revenue by billing type, Projects by
+status, the Projects list, and overdue follow-ups.
+
+Open Deals excludes Pipeline, Won, and Lost. Projected Revenue excludes Won and
+Lost but includes Pipeline. Revenue totals use normalized Deal `value` or
+Project `annualizedValue`, as appropriate. Record tables remain worklists and
+are not used as totals.
 
 ## Verification
 

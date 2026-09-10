@@ -30,7 +30,6 @@ import operationalDashboard from 'src/page-layouts/operational-dashboard';
 import activeProjects from 'src/views/active-projects';
 import openDeals from 'src/views/open-deals';
 import overdueFollowUps from 'src/views/overdue-follow-ups';
-import projectDataQuality from 'src/views/project-data-quality';
 
 const PAGE_LAYOUT_ID = 'b0af7b34-c874-489c-916e-230a60cce2bc';
 
@@ -47,6 +46,7 @@ describe('dashboard view metadata', () => {
 
     expect(activeProjects.config.filters?.[0]?.value).toEqual(['ACTIVE']);
     expect(openDeals.config.filters?.map((filter) => filter.value)).toEqual([
+      ['PIPELINE'],
       ['WON'],
       ['LOST'],
     ]);
@@ -54,94 +54,190 @@ describe('dashboard view metadata', () => {
     expect(overdueFollowUps.config.filters?.[1]?.value).toBe('');
   });
 
-  it('defines the four documented dashboard worklists', () => {
+  it('defines the captured three-tab operational dashboard', () => {
     expect(operationalDashboard.success).toBe(true);
     expect(operationalDashboard.errors).toEqual([]);
-    expect(projectDataQuality.success).toBe(true);
-    expect(projectDataQuality.errors).toEqual([]);
+
+    const tabs = operationalDashboard.config.tabs ?? [];
+    const widgets = tabs.flatMap((tab) => tab.widgets ?? []);
 
     expect(operationalDashboard.config).toMatchObject({
       universalIdentifier: OPERATIONAL_DASHBOARD_PAGE_LAYOUT_UNIVERSAL_IDENTIFIER,
       name: OPERATIONAL_DASHBOARD_TITLE,
       type: 'DASHBOARD',
-      tabs: [
-        {
-          universalIdentifier: 'b38f26fe-d6a2-4483-9f63-1f871569072e',
-          title: 'Overview',
-          position: 0,
-          layoutMode: 'GRID',
-          widgets: [
-            {
-              universalIdentifier: '1b145e2f-dd15-43e5-a8a0-c388f72a92c1',
-              title: 'Open Deals',
-              type: 'RECORD_TABLE',
-              position: {
-                layoutMode: 'GRID',
-                row: 0,
-                column: 0,
-                rowSpan: 1,
-                columnSpan: 1,
-              },
-              configuration: {
-                configurationType: 'RECORD_TABLE',
-                viewUniversalIdentifier: openDeals.config.universalIdentifier,
-                recordLimit: 10,
-              },
-            },
-            {
-              universalIdentifier: '4e9cd6d2-c687-481e-970a-cdd01f48d574',
-              title: 'Active Projects',
-              type: 'RECORD_TABLE',
-              position: {
-                layoutMode: 'GRID',
-                row: 0,
-                column: 1,
-                rowSpan: 1,
-                columnSpan: 1,
-              },
-              configuration: {
-                configurationType: 'RECORD_TABLE',
-                viewUniversalIdentifier: activeProjects.config.universalIdentifier,
-                recordLimit: 10,
-              },
-            },
-            {
-              universalIdentifier: '9362c0bf-5d94-441f-9bd0-2e0f2a8de7c4',
-              title: 'Overdue follow-ups',
-              type: 'RECORD_TABLE',
-              position: {
-                layoutMode: 'GRID',
-                row: 1,
-                column: 0,
-                rowSpan: 1,
-                columnSpan: 1,
-              },
-              configuration: {
-                configurationType: 'RECORD_TABLE',
-                viewUniversalIdentifier: overdueFollowUps.config.universalIdentifier,
-                recordLimit: 10,
-              },
-            },
-            {
-              universalIdentifier: '35b659a8-69a3-49c2-8b44-edf8e451eb5b',
-              title: 'Data quality',
-              type: 'RECORD_TABLE',
-              position: {
-                layoutMode: 'GRID',
-                row: 1,
-                column: 1,
-                rowSpan: 1,
-                columnSpan: 1,
-              },
-              configuration: {
-                configurationType: 'RECORD_TABLE',
-                viewUniversalIdentifier: projectDataQuality.config.universalIdentifier,
-                recordLimit: 10,
-              },
-            },
-          ],
-        },
-      ],
+    });
+    expect(tabs.map(({ title, position }) => ({ title, position }))).toEqual([
+      { title: 'Overview', position: 0 },
+      { title: 'Pipeline', position: 1 },
+      { title: 'Operations', position: 2 },
+    ]);
+    expect(widgets).toHaveLength(14);
+    expect(
+      widgets.map(({ title, type, configuration, position }) => ({
+        title,
+        type,
+        configurationType: configuration?.configurationType,
+        position,
+      })),
+    ).toEqual([
+      {
+        title: 'Deals by Stage',
+        type: 'GRAPH',
+        configurationType: 'PIE_CHART',
+        position: { layoutMode: 'GRID', row: 0, column: 0, rowSpan: 6, columnSpan: 6 },
+      },
+      {
+        title: 'Companies by Industry',
+        type: 'GRAPH',
+        configurationType: 'BAR_CHART',
+        position: { layoutMode: 'GRID', row: 0, column: 6, rowSpan: 6, columnSpan: 6 },
+      },
+      {
+        title: 'Current Revenue',
+        type: 'GRAPH',
+        configurationType: 'AGGREGATE_CHART',
+        position: { layoutMode: 'GRID', row: 6, column: 0, rowSpan: 2, columnSpan: 3 },
+      },
+      {
+        title: 'Projected Revenue',
+        type: 'GRAPH',
+        configurationType: 'AGGREGATE_CHART',
+        position: { layoutMode: 'GRID', row: 6, column: 3, rowSpan: 2, columnSpan: 3 },
+      },
+      {
+        title: 'Open Deals',
+        type: 'GRAPH',
+        configurationType: 'AGGREGATE_CHART',
+        position: { layoutMode: 'GRID', row: 6, column: 6, rowSpan: 2, columnSpan: 3 },
+      },
+      {
+        title: 'Project Data Gaps',
+        type: 'GRAPH',
+        configurationType: 'AGGREGATE_CHART',
+        position: { layoutMode: 'GRID', row: 6, column: 9, rowSpan: 2, columnSpan: 3 },
+      },
+      {
+        title: 'Revenue Trends',
+        type: 'GRAPH',
+        configurationType: 'LINE_CHART',
+        position: { layoutMode: 'GRID', row: 8, column: 0, rowSpan: 6, columnSpan: 12 },
+      },
+      {
+        title: 'Pipeline Value by Stage',
+        type: 'GRAPH',
+        configurationType: 'BAR_CHART',
+        position: { layoutMode: 'GRID', row: 0, column: 0, rowSpan: 6, columnSpan: 6 },
+      },
+      {
+        title: 'Deals by Stage and Billing Type',
+        type: 'GRAPH',
+        configurationType: 'BAR_CHART',
+        position: { layoutMode: 'GRID', row: 0, column: 6, rowSpan: 6, columnSpan: 6 },
+      },
+      {
+        title: 'Open Deals Worklist',
+        type: 'RECORD_TABLE',
+        configurationType: 'RECORD_TABLE',
+        position: { layoutMode: 'GRID', row: 6, column: 0, rowSpan: 6, columnSpan: 12 },
+      },
+      {
+        title: 'Revenue by Billing Type',
+        type: 'GRAPH',
+        configurationType: 'BAR_CHART',
+        position: { layoutMode: 'GRID', row: 0, column: 0, rowSpan: 6, columnSpan: 6 },
+      },
+      {
+        title: 'Projects by Status',
+        type: 'GRAPH',
+        configurationType: 'PIE_CHART',
+        position: { layoutMode: 'GRID', row: 0, column: 6, rowSpan: 6, columnSpan: 6 },
+      },
+      {
+        title: 'Projects',
+        type: 'RECORD_TABLE',
+        configurationType: 'RECORD_TABLE',
+        position: { layoutMode: 'GRID', row: 6, column: 0, rowSpan: 6, columnSpan: 12 },
+      },
+      {
+        title: 'Overdue Follow-ups',
+        type: 'RECORD_TABLE',
+        configurationType: 'RECORD_TABLE',
+        position: { layoutMode: 'GRID', row: 12, column: 0, rowSpan: 6, columnSpan: 12 },
+      },
+    ]);
+
+    for (const widget of widgets) {
+      expect(widget.objectUniversalIdentifier).toBeTruthy();
+      const position = widget.position;
+
+      if (!position) {
+        throw new Error(`${widget.title} is missing its grid position.`);
+      }
+
+      expect(position.layoutMode).toBe('GRID');
+      if (position.layoutMode === 'GRID') {
+        expect(position.rowSpan).toBeGreaterThanOrEqual(2);
+        expect(position.columnSpan).toBeGreaterThanOrEqual(3);
+      }
+    }
+  });
+
+  it('packages chart filters and worklist bindings with universal identifiers', () => {
+    const widgets = (operationalDashboard.config.tabs ?? []).flatMap(
+      (tab) => tab.widgets ?? [],
+    );
+    const widgetByTitle = (title: string) =>
+      widgets.find((widget) => widget.title === title);
+
+    expect(widgetByTitle('Current Revenue')?.configuration).toMatchObject({
+      configurationType: 'AGGREGATE_CHART',
+      aggregateOperation: 'SUM',
+      prefix: '$',
+      filter: {
+        recordFilters: [{ operand: 'IS', value: '["ACTIVE"]' }],
+        recordFilterGroups: [{ logicalOperator: 'AND' }],
+      },
+    });
+    expect(widgetByTitle('Projected Revenue')?.configuration).toMatchObject({
+      configurationType: 'AGGREGATE_CHART',
+      aggregateOperation: 'SUM',
+      filter: {
+        recordFilters: [{ operand: 'IS_NOT', value: '["LOST","WON"]' }],
+      },
+    });
+    expect(widgetByTitle('Open Deals')?.configuration).toMatchObject({
+      configurationType: 'AGGREGATE_CHART',
+      aggregateOperation: 'COUNT',
+      filter: {
+        recordFilters: [
+          { operand: 'IS_NOT', value: '["PIPELINE","WON","LOST"]' },
+        ],
+      },
+    });
+    expect(widgetByTitle('Project Data Gaps')?.configuration).toMatchObject({
+      configurationType: 'AGGREGATE_CHART',
+      filter: {
+        recordFilters: [
+          { operand: 'IS_EMPTY', value: '' },
+          { operand: 'IS_EMPTY', value: '' },
+          { operand: 'IS_EMPTY', value: '', subFieldName: 'amountMicros' },
+        ],
+        recordFilterGroups: [{ logicalOperator: 'OR' }],
+      },
+    });
+    expect(widgetByTitle('Open Deals Worklist')?.configuration).toEqual({
+      configurationType: 'RECORD_TABLE',
+      viewUniversalIdentifier: openDeals.config.universalIdentifier,
+      recordLimit: 10,
+    });
+    expect(widgetByTitle('Projects')?.configuration).toMatchObject({
+      configurationType: 'RECORD_TABLE',
+      viewUniversalIdentifier: 'c424e88e-c414-41e7-bcd6-37a8a4d6a701',
+    });
+    expect(widgetByTitle('Overdue Follow-ups')?.configuration).toEqual({
+      configurationType: 'RECORD_TABLE',
+      viewUniversalIdentifier: overdueFollowUps.config.universalIdentifier,
+      recordLimit: 10,
     });
   });
 });

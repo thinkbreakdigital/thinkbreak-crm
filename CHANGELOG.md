@@ -2,6 +2,16 @@
 
 All notable changes to this application are documented in this file.
 
+## 0.1.25
+
+- Replace the placeholder Operational dashboard with the captured three-tab,
+  14-widget layout.
+- Package native aggregate, pie, bar, and line charts with their object and
+  field bindings.
+- Bind every dashboard record table to both its object and packaged view, and
+  use readable grid dimensions.
+- Exclude Pipeline Deals from the Open Deals metric and worklist.
+
 ## 0.1.21
 
 - Replace the Company Industry select with a relation to a custom Industry

@@ -2,7 +2,7 @@
 
 - Status: Active implementation and maintainer verification
 - Owner: ThinkBreak
-- Last reviewed: 2026-09-08
+- Last reviewed: 2026-09-10
 - Pinned SDK and CI server version: 2.37.0
 - Last hosted CI verification: 2026-09-06
 
@@ -53,9 +53,8 @@ that project only after this app is deployed and in daily use.
 - Give packaged logic functions only the record permissions they need. Do not
   grant delete permission when no packaged function deletes records.
 - Build reports with Twenty views and dashboard page layouts.
-- Store annualized values for record-level views and future aggregate widgets.
-- Defer current-revenue totals until the SDK supports a packaged aggregate
-  widget.
+- Store annualized values for record-level views and aggregate widgets.
+- Package current revenue as the sum of `annualizedValue` for Active Projects.
 - Configure an inactive stock Twenty workflow in the workspace to create an
   email follow-up Task when a Person gains an email address.
 - Use a branch in that workflow to create a call Task when the Person gains a
@@ -93,7 +92,8 @@ the deployed model.
 
 - `src/views/deals-board.ts` defines a Deal kanban grouped by `stage`.
 - `src/views/projects-list.ts` defines a Project table.
-- Four packaged table views provide the Operational dashboard worklists.
+- Four packaged table views support operational work. The dashboard uses the
+  Open Deals, Projects, and overdue follow-up views for record tables.
 - Neither object view has a packaged navigation menu item. The maintainer adds
   both entries in the Twenty UI and chooses their positions and icons.
 - `src/page-layouts/operational-dashboard.ts` defines the Operational dashboard
@@ -204,9 +204,9 @@ changing the pinned versions.
   `20202020-1ba1-48ba-bc83-ef7e5990ed10`, and `defineField` already targets
   standard objects in this app. CI has accepted the packaged Task
   `automationKey` field.
-- The `WidgetType` enum has 23 members. It includes `RECORD_TABLE`, `FIELD`, and
-  `FRONT_COMPONENT`. It does not include `FORM_FIELD`,
-  `AGGREGATE_CHART`, `BAR_CHART`, `PIE_CHART`, or `LINE_CHART`.
+- `WidgetType.GRAPH` is the outer widget type for native charts. The nested
+  configuration identifies `AGGREGATE_CHART`, `BAR_CHART`, `PIE_CHART`, or
+  `LINE_CHART`. These configuration names are not `WidgetType` members.
   `PageLayoutType` includes `DASHBOARD`, and `PageLayoutTabLayoutMode` includes
   `GRID`.
 - `ViewFilterOperand` includes `IS_RELATIVE`, `IS_IN_PAST`, `IS_EMPTY`, and
@@ -214,11 +214,13 @@ changing the pinned versions.
   relative-date and missing-value views are packageable.
 - SELECT filters with `IS` or `IS_NOT` store their option keys in an array.
 - A manifest renames serialized relation keys, so a `RECORD_TABLE` widget writes
-  `viewUniversalIdentifier` where the runtime type says `viewId`.
+  `viewUniversalIdentifier` where the runtime type says `viewId`. A record table
+  also needs the widget-level `objectUniversalIdentifier`; without it, Twenty's
+  renderer has no `objectMetadataId` and returns no table content.
 - `ViewFieldManifest` accepts `aggregateOperation`, and `ViewManifest` accepts
   `filters`, `filterGroups`, `kanbanAggregateOperation`, and
   `kanbanAggregateOperationFieldMetadataUniversalIdentifier`. These view fields
-  do not provide a packaged aggregate dashboard tile.
+  do not provide a packaged aggregate dashboard tile by themselves.
 
 ## What lives where
 
@@ -761,43 +763,55 @@ screenshots.
 
 ## Phase 5: Package native Twenty reporting
 
-The installed `twenty-sdk` 2.37.0 exposes `RECORD_TABLE`, but it does not expose
-`AGGREGATE_CHART` or `BAR_CHART` in `WidgetType`. A chart configuration type
-exists in the declarations, but a page-layout widget cannot use it. Do not
-declare unsupported widget values or work around the enum with a cast.
+The installed `twenty-sdk` 2.37.0 packages native charts by using
+`WidgetType.GRAPH` as the widget type and a chart-specific nested
+`configurationType`. Supported configurations include `AGGREGATE_CHART`,
+`PIE_CHART`, `BAR_CHART`, and `LINE_CHART`.
 
-Use `RECORD_TABLE` widgets only. They are worklists, not aggregate reports. A
-table can display records that need attention, but it cannot provide a reliable
-headline total because its `recordLimit` truncates the result set.
+Every dashboard widget must provide its object universal identifier. A record
+table also provides a view universal identifier. During application sync,
+Twenty resolves these values to `objectMetadataId` and `viewId`. The record
+table renderer requires both resolved IDs. Omitting the object binding produces
+a title-only card even when the saved view resolves correctly.
 
-The installed enum also exposes `VIEW`, `IFRAME`, `FIELD`, `FIELDS`, `GRAPH`,
-`STANDALONE_RICH_TEXT`, `TIMELINE`, `TASKS`, `NOTES`, `FILES`, `EMAILS`,
-`CALENDAR`, `FIELD_RICH_TEXT`, `WORKFLOW`, `WORKFLOW_VERSION`,
-`WORKFLOW_RUN`, `FRONT_COMPONENT`, `EMAIL_THREAD`,
-`CALL_RECORDING_SUMMARY`, `CALL_RECORDING_TRANSCRIPT`,
-`MESSAGE_CAMPAIGN_BODY`, and `MESSAGE_CAMPAIGN_DETAILS`. None has a confirmed
-native aggregate-chart configuration for a packaged dashboard. Do not use an
-iframe or front component as a substitute.
-
-Use USD for stored-value reporting. The dashboard does not calculate or display
-revenue totals until a supported aggregate widget exists. The views still show
-the source and derived USD values for individual records.
+Use the dashboard editor capture in
+`spec/example/dashboard-metadata-reference.md` as the presentation reference.
+Use packaged object, field, and view universal identifiers in the manifest
+instead of the capture's workspace runtime IDs.
 
 ### Build the operational dashboard
 
-Scaffold each view with `yarn twenty dev:add view`. Build the page layout and
-its tab with `yarn twenty dev:add pageLayout` and
-`yarn twenty dev:add pageLayoutTab`.
+Define one `DASHBOARD` page layout with three `GRID` tabs and 14 widgets on the
+12-column grid:
 
-Define one `DASHBOARD` page layout with a `GRID` tab and four `RECORD_TABLE`
-widgets. Use a `recordLimit` of 10 for every widget.
+- Overview: Deals by Stage, Companies by Industry, Current Revenue, Projected
+  Revenue, Open Deals, Project Data Gaps, and Revenue Trends.
+- Pipeline: Pipeline Value by Stage, Deals by Stage and Billing Type, and Open
+  Deals Worklist.
+- Operations: Revenue by Billing Type, Projects by Status, Projects, and
+  Overdue Follow-ups.
+
+Use the captured 6 by 6 chart sizes, 3 by 2 metric sizes, and 12 by 6 table and
+trend sizes. Use a record limit of 10 for every record table. Package the
+existing app-owned views for the Open Deals, Projects, and overdue follow-up
+tables instead of the editor-generated workspace views.
+
+Open Deals excludes Pipeline, Won, and Lost. Projected Revenue excludes Won and
+Lost but includes Pipeline. This difference is intentional: Pipeline is the
+unqualified intake stage, so it is omitted from the active-deal count and
+worklist while remaining part of total projected revenue.
+
+Do not repeat a field as both primary and secondary grouping. The captured
+Pipeline Value by Stage and Revenue by Billing Type widgets contained that
+editor artifact. The packaged versions use one grouping each.
 
 Twenty's built-in Dashboard module lists standard Dashboard records, not page
 layouts by themselves. The app must create one Dashboard record that points to
 the packaged layout. Do not add a separate page-layout navigation item as a
 substitute.
 
-- [x] Open Deals. A Deal view that excludes Won and Lost, sorted by update date.
+- [x] Open Deals. A Deal view that excludes Pipeline, Won, and Lost, sorted by
+  update date.
 - [x] Active Projects. A Project view filtered to status Active, sorted by
   `annualizedValue` descending. Show the USD annualized value.
 - [x] Overdue follow-ups. A Task view for incomplete Tasks whose due date is in
@@ -819,10 +833,9 @@ hook. The Dashboard record remains until a maintainer removes it.
 Twenty skips the post-install hook during `appDevOnce`, so CI cannot prove that
 the Dashboard record appears after a production install. Unit tests cover the
 hook's create, repair, no-op, and error paths. The manual verification workflow
-checks the deployed layout, widgets, saved-view links, and Dashboard record.
-These checks do not prove that the Twenty UI renders nonempty worklists. The
-maintainer reported broken dashboard items before the current filter and hook
-repairs. Hosted UI verification remains open.
+checks the deployed tabs, 14 widget contracts, resolved object bindings,
+saved-view links, and Dashboard record. These checks do not prove visible UI
+behavior. Hosted UI verification remains a maintainer step.
 
 Then finish the Deals board:
 
@@ -832,41 +845,32 @@ Then finish the Deals board:
 - [x] Do not add a page-layout navigation menu item for the Operational
   dashboard. It belongs in Twenty's built-in Dashboard module.
 
-### Add when Twenty supports aggregates
-
-Do not add these until `WidgetType` exposes a supported aggregate or chart
-widget and CI accepts the metadata:
-
-- Current revenue, as the USD sum of `annualizedValue` for Active Projects.
-- Projected revenue, as the USD sum of Deal `value` for open Deals.
-- Open Deals count.
-- Lead source mix.
-- Revenue by billing type.
-- Deal board column totals.
-
 ### Acceptance criteria
 
 - [ ] A fresh installation shows one Operational dashboard in Twenty's built-in
-  Dashboard module, with all four packaged worklists.
+  Dashboard module, with the three packaged tabs and 14 widgets.
 - [x] Every dashboard widget uses a value in the installed `WidgetType` enum.
-- [x] Every widget uses a packaged view and a `recordLimit` of 10.
-- [x] The dashboard does not show a table footer as a revenue or count metric.
-- [x] The Active Projects view displays each record's USD `annualizedValue`.
-- [x] The Open Deals view excludes Won and Lost Deals.
+- [x] Every dashboard widget carries an object universal identifier.
+- [x] Every record table uses a packaged view and a `recordLimit` of 10.
+- [x] Aggregate cards calculate totals from object fields rather than table
+  footers or truncated worklists.
+- [x] The Open Deals view excludes Pipeline, Won, and Lost Deals.
 - [x] The Deals board displays the stage-derived `probability`.
-- [x] The Data quality view exposes Projects missing fields needed for revenue
-  reporting.
+- [x] The Project Data Gaps metric counts Projects missing fields needed for
+  revenue reporting with one OR filter group.
+- [x] The manifest does not use workspace runtime IDs from the editor capture.
 
 ### Verification
 
-- [ ] Prepare a small fixture set with open and terminal Deals, Active Projects,
-  an overdue Task, and a Project missing a billing input.
 - [x] Add a CI gate that rejects any destructive metadata plan before views and page
   layout reach the hosted workspace.
-- [x] Add unit coverage for SELECT filter value shapes, the four worklist widget
-  definitions, and the dashboard hook's create and repair behavior.
-- [ ] Let the maintainer inspect the applied dashboard and verify each worklist.
-- [x] Confirm that no widget uses an unsupported chart or aggregate type.
+- [x] Add unit coverage for SELECT filter value shapes, the three-tab layout,
+  all 14 widget definitions, chart filters, table bindings, and the dashboard
+  hook's create and repair behavior.
+- [ ] Run the read-only verification workflow after deployment and confirm that
+  all widget object IDs and table view IDs resolve.
+- [ ] Let the maintainer inspect the applied dashboard and verify charts,
+  metrics, filters, and worklists.
 - [ ] Do not use browser automation, screenshots, or end-to-end UI tests.
 
 ## Phase 6: Deploy the app and build on it
@@ -968,9 +972,10 @@ Do not reopen these decisions without new evidence:
   `databaseEventTriggerSettings` and `CoreApiClient`. A fresh install's fallback
   declarations are not a workspace-schema check. The integration setup generates
   the real client, so CI runs typecheck after that setup installs the app.
-- Packaged views provide the dashboard filters. `RECORD_TABLE` widgets embed
-  those views. They are capped worklists, not aggregate metrics. Do not build
-  the dashboard by hand in the Twenty UI.
+- Packaged views provide record-table filters. `RECORD_TABLE` widgets embed
+  those views, while native `GRAPH` widgets provide metrics and charts. The
+  repository owns the dashboard definition; do not rebuild it by hand in the
+  Twenty UI.
 - `spec/implementation-rules.md` is not needed. `AGENTS.md` already holds those
   rules.
 - A derived CURRENCY field inherits `currencyCode` from its source.
@@ -979,8 +984,8 @@ Do not reopen these decisions without new evidence:
 - Deal probability stores a ratio and displays it as a percentage. The stage mapping
   is Pipeline 0.1, Outreach 0.2, Appt Set 0.3, Appt Met 0.5, Quote 0.75, Won 1,
   and Lost 0. Recalibrate from measured win rates, not from opinion.
-- No reported number comes from a table footer or a kanban column total. Defer
-  headline figures until `WidgetType` supports a packaged aggregate widget.
+- No reported number comes from a table footer or a kanban column total.
+  Headline figures use native `GRAPH` widgets with aggregate configurations.
 - Deal stages stay exactly as `src/fields/deal-stage.ts` defines them. No phase
   renames, remaps, adds, or removes a stage, so no phase touches the packaged
   kanban groups that pin those values.

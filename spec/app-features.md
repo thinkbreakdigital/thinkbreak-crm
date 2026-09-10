@@ -116,20 +116,30 @@ options. It displays the stage-derived `probability` field.
 
 `src/views/projects-list.ts` defines Projects list, a table view on Project.
 
-The package also defines four table views used by the operational dashboard:
+The package also defines four operational table views:
 
-- `Open Deals` excludes Won and Lost Deals and sorts by latest update.
+- `Open Deals` excludes Pipeline, Won, and Lost Deals and sorts by latest update.
 - `Active Projects` filters to Active Projects, sorts by `annualizedValue`
   descending, and shows each record's USD annualized value.
 - `Overdue follow-ups` shows incomplete Tasks with a due date in the past.
 - `Project data quality` shows Projects missing `status`, `billingType`, or
   `value`.
 
-`src/page-layouts/operational-dashboard.ts` defines a Dashboard page layout
-with one grid tab. Its four `RECORD_TABLE` widgets each show at most 10 records
-from one of the packaged worklist views. The dashboard intentionally has no
-aggregate revenue or count metrics because the installed SDK does not support
-packaged aggregate widgets.
+`src/page-layouts/operational-dashboard.ts` defines the preconfigured Dashboard
+page layout. Its Overview, Pipeline, and Operations tabs contain 14 widgets:
+
+- Four aggregate metric cards for current revenue, projected revenue, open
+  Deals, and Project data gaps.
+- Seven charts for Deal stage, Company industry, revenue trends, pipeline value,
+  Deal billing type, Project billing type, and Project status. Revenue trends
+  is the one line chart; the other chart items use bar or pie presentations.
+- Three 10-row record tables for open Deals, Projects, and overdue follow-ups.
+
+Every widget names its object through an object universal identifier. Record
+tables also name a packaged view through its universal identifier. The graph
+widgets use `WidgetType.GRAPH` with the SDK's aggregate, pie, bar, or line chart
+configuration type. The grid uses the same 12-column dimensions as the
+maintainer's captured dashboard rather than placeholder 1 by 1 cells.
 
 `src/logic-functions/ensure-operational-dashboard.ts` runs after installation
 and every app upgrade. It resolves this layout through Twenty's metadata API,

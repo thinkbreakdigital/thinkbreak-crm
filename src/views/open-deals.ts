@@ -50,6 +50,12 @@ export default defineView({
   ],
   filters: [
     {
+      universalIdentifier: 'e84b128e-ec43-40d9-8bb4-7738d61a832a',
+      fieldMetadataUniversalIdentifier: DEAL_STAGE_FIELD,
+      operand: ViewFilterOperand.IS_NOT,
+      value: ['PIPELINE'],
+    },
+    {
       universalIdentifier: '3a13d233-bc74-401f-8e53-b2e2ae6d04c9',
       fieldMetadataUniversalIdentifier: DEAL_STAGE_FIELD,
       operand: ViewFilterOperand.IS_NOT,
